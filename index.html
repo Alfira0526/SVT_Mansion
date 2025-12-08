@@ -524,21 +524,30 @@
 
     // 미리보기 영역을 PNG 이미지로 다운로드
     function downloadPreviewAsImage() {
-      const container = document.getElementById("previewContainer");
-      if (!container) return;
+  const container = document.getElementById("previewContainer");
+  if (!container) return;
 
-      html2canvas(container, { backgroundColor: null }).then(canvas => {
-        const link = document.createElement("a");
-        link.href = canvas.toDataURL("image/png");
-        link.download = "SVT_Mansion.png";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }).catch(err => {
-        console.error(err);
-        alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
-      });
-    }
+  // 현재 화면보다 2배 해상도로 캡처해서 눌리는 느낌/뭉개짐을 줄이기
+  const scale = 2;
+
+  html2canvas(container, {
+    backgroundColor: null,
+    scale: scale,                     // 캔버스 해상도 업
+    windowWidth: container.scrollWidth,
+    windowHeight: container.scrollHeight
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "SVT_Mansion.png";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }).catch(err => {
+    console.error(err);
+    alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
+  });
+}
+
 
     function sendToSheetAndPreview() {
       const results = collectResults();
