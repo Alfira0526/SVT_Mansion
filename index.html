@@ -230,16 +230,19 @@
     }
 
     @media (max-width: 700px) {
-      .floor {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-      }
-      .preview-floor-grid {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-      }
-      button {
-        flex: 1 1 100%;
-      }
-    }
+  /* 위쪽 '입주자 선택' 화면은 모바일에서 1열로 */
+  .floor {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  /* 미리보기는 모바일에서도 계속 3열 유지 → 한 층이 한 행에 나옴 */
+  /* .preview-floor-grid 는 여기서 건드리지 않음 */
+
+  button {
+    flex: 1 1 100%;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -247,6 +250,7 @@
     <h1>세븐틴이 한 아파트에 산다면?!</h1>
     <p class="desc">
       각 집에 멤버들을 한 명씩 배치해 주세요! 같은 멤버는 한 번만 배치할 수 있습니다.<br>
+      나는 넣지않을 경우 공실을 두개 배치해주세요.<br>
       배치를 마친 뒤 <strong>이사하기</strong>를 누르면, 아래에 맨션 배치 미리보기가 생성됩니다!<br>
       <strong>이미지로 저장하기</strong> 버튼을 눌러 미리보기를 PNG 이미지로 저장할 수 있습니다.
     </p>
@@ -259,7 +263,7 @@
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
-      <div class="preview-title">배치 미리보기</div>
+      <div class="preview-title">SVT 아파트 주민현황</div>
       <div id="previewContent"></div>
     </div>
   </div>
@@ -294,7 +298,7 @@
       { id: "승관",     label: "승관",     img: "image/seungkwan.jpeg" },
       { id: "버논",     label: "버논",     img: "image/vernon.jpeg" },
       { id: "디노",     label: "디노",     img: "image/dino.jpeg" },
-      { id: "나",       label: "나",       img: "image/me.jpeg" },
+      { id: "캐럿",     label: "캐럿",     img: "image/me.jpeg" },
       { id: "공실",     label: "공실",     img: "image/empty.jpeg" }
     ];
 
