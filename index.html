@@ -216,6 +216,7 @@
     <p class="desc">
       각 집에 입주자를 한 명씩 배치해 주세요. 같은 멤버는 한 번만 배치할 수 있고, 공실은 여러 곳에 둘 수 있습니다.
       배치를 마친 뒤 <strong>저장하기</strong>를 누르면, 아래에 맨션 배치 미리보기가 생성되고 결과가 Google 시트로 전송됩니다.
+      저장이 완료되면 미리보기 영역이 <strong>이미지 파일(PNG)</strong>로 자동 다운로드됩니다.
     </p>
 
     <div id="building" class="building"></div>
@@ -239,6 +240,9 @@
     <textarea name="payload" id="payloadField"></textarea>
   </form>
   <iframe name="hidden_iframe" style="display:none;"></iframe>
+
+  <!-- ★ html2canvas CDN 추가 -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
     const FLOORS = 5;
@@ -276,48 +280,48 @@
       return ids;
     }
 
-    // 모든 셀렉트에서 이미 선택된 멤버는 다른 셀렉트의 드롭다운 목록에 아예 안 보이게
-function updateAllSelectOptions() {
-  const selected = getSelectedUniqueIds(); // 공실 제외, 현재 선택된 멤버들
+    // ★ 모든 셀렉트에서 이미 선택된 멤버는 다른 셀렉트의 드롭다운 목록에 아예 안 보이게
+    function updateAllSelectOptions() {
+      const selected = getSelectedUniqueIds(); // 공실 제외, 현재 선택된 멤버들
 
-  allSelects.forEach(select => {
-    const currentValue = select.value; // 이 셀렉트가 지금 들고 있는 값
+      allSelects.forEach(select => {
+        const currentValue = select.value; // 이 셀렉트가 지금 들고 있는 값
 
-    // 옵션 전부 갈아엎기
-    select.innerHTML = "";
+        // 옵션 전부 갈아엎기
+        select.innerHTML = "";
 
-    // 기본값
-    const defaultOpt = document.createElement("option");
-    defaultOpt.value = "";
-    defaultOpt.textContent = "— 선택 —";
-    select.appendChild(defaultOpt);
+        // 기본값
+        const defaultOpt = document.createElement("option");
+        defaultOpt.value = "";
+        defaultOpt.textContent = "— 선택 —";
+        select.appendChild(defaultOpt);
 
-    residents.forEach(r => {
-      // 공실은 언제나 중복 허용
-      if (r.id === "공실") {
-        const opt = document.createElement("option");
-        opt.value = r.id;
-        opt.textContent = r.label;
-        select.appendChild(opt);
-        return;
-      }
+        residents.forEach(r => {
+          // 공실은 언제나 중복 허용
+          if (r.id === "공실") {
+            const opt = document.createElement("option");
+            opt.value = r.id;
+            opt.textContent = r.label;
+            select.appendChild(opt);
+            return;
+          }
 
-      // 이미 다른 집에 배치된 멤버면 리스트에서 제거
-      // 단, 이 셀렉트가 지금 그 멤버를 들고 있는 경우는 유지
-      if (r.id !== currentValue && selected.includes(r.id)) {
-        return;
-      }
+          // 이미 다른 집에 배치된 멤버면 리스트에서 제거
+          // 단, 이 셀렉트가 지금 그 멤버를 들고 있는 경우는 유지
+          if (r.id !== currentValue && selected.includes(r.id)) {
+            return;
+          }
 
-      const opt = document.createElement("option");
-      opt.value = r.id;
-      opt.textContent = r.label;
-      select.appendChild(opt);
-    });
+          const opt = document.createElement("option");
+          opt.value = r.id;
+          opt.textContent = r.label;
+          select.appendChild(opt);
+        });
 
-    // 기존 선택 복원 (없으면 자동으로 기본값으로 감)
-    select.value = currentValue;
-  });
-}
+        // 기존 선택 복원 (없으면 자동으로 기본값으로 감)
+        select.value = currentValue;
+      });
+    }
 
     function createUnit(floorNumber, unitNumber) {
       const unit = document.createElement("div");
@@ -511,6 +515,22 @@ function updateAllSelectOptions() {
       }
     }
 
+    // ★ 미리보기 영역을 PNG 이미지로 다운로드
+    function downloadPreviewAsImage() {
+      const container = document.getElementById("previewContainer");
+      if (!container) return;
+
+      html2canvas(container, { backgroundColor: null }).then(canvas => {
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = "SVT_Mansion.png";
+        link.click();
+      }).catch(err => {
+        console.error(err);
+        alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
+      });
+    }
+
     function sendToSheetAndPreview() {
       const results = collectResults();
 
@@ -530,6 +550,9 @@ function updateAllSelectOptions() {
 
       // 미리보기 먼저 생성
       renderPreview(results);
+
+      // ★ 미리보기 영역을 이미지로 바로 저장
+      downloadPreviewAsImage();
 
       const payload = {
         submittedAt: new Date().toISOString(),
