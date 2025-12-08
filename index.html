@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>세븐틴 아파트 배치</title>
   <style>
     body {
@@ -187,33 +188,40 @@
     .preview-unit {
       background: #222;
       border-radius: 12px;
-      padding: 8px;
+      padding: 10px 8px;
       border: 1px solid #333;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      min-height: 80px;
+      min-height: 130px;
     }
 
     .preview-unit-label {
-      font-size: 12px;
+      font-size: 13px;
       color: #bbbbbb;
+      margin-bottom: 4px;
+    }
+
+    .preview-divider {
+      width: 70%;
+      height: 1px;
+      background: #444;
+      margin-bottom: 8px;
     }
 
     /* 미리보기에서 이미지는 배경이미지로 렌더링 (크롭 문제 방지) */
     .preview-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 8px;
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
-      margin-bottom: 2px;
+      margin-bottom: 6px;
     }
 
     .preview-unit-name {
-      font-size: 12px;
+      font-size: 13px;
     }
 
     .preview-empty {
@@ -227,6 +235,9 @@
       }
       .preview-floor-grid {
         grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+      button {
+        flex: 1 1 100%;
       }
     }
   </style>
@@ -516,6 +527,10 @@
           label.className = "preview-unit-label";
           label.textContent = `${roomNumber}호`;
           unitDiv.appendChild(label);
+
+          const divider = document.createElement("div");
+          divider.className = "preview-divider";
+          unitDiv.appendChild(divider);
 
           const found = results.find(r => r.floor === f && r.unit === u);
 
