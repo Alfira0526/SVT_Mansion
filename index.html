@@ -121,6 +121,7 @@
       margin: 12px 0 8px;
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     button {
@@ -216,13 +217,14 @@
     <p class="desc">
       각 집에 입주자를 한 명씩 배치해 주세요. 같은 멤버는 한 번만 배치할 수 있고, 공실은 여러 곳에 둘 수 있습니다.
       배치를 마친 뒤 <strong>저장하기</strong>를 누르면, 아래에 맨션 배치 미리보기가 생성되고 결과가 Google 시트로 전송됩니다.
-      저장이 완료되면 미리보기 영역이 <strong>이미지 파일(PNG)</strong>로 자동 다운로드됩니다.
+      이후 <strong>이미지로 저장하기</strong> 버튼을 눌러 미리보기를 PNG 이미지로 저장할 수 있습니다.
     </p>
 
     <div id="building" class="building"></div>
 
     <div class="actions">
       <button id="saveBtn" type="button">저장하기</button>
+      <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
@@ -241,7 +243,7 @@
   </form>
   <iframe name="hidden_iframe" style="display:none;"></iframe>
 
-  <!-- ★ html2canvas CDN 추가 -->
+  <!-- html2canvas CDN -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <script>
@@ -267,6 +269,7 @@
 
     const buildingEl = document.getElementById("building");
     const allSelects = [];
+    const downloadBtn = document.getElementById("downloadBtn");
 
     // 이미 선택된 (공실 제외) 멤버 목록
     function getSelectedUniqueIds() {
@@ -280,7 +283,7 @@
       return ids;
     }
 
-    // ★ 모든 셀렉트에서 이미 선택된 멤버는 다른 셀렉트의 드롭다운 목록에 아예 안 보이게
+    // 모든 셀렉트에서 이미 선택된 멤버는 다른 셀렉트의 드롭다운 목록에 아예 안 보이게
     function updateAllSelectOptions() {
       const selected = getSelectedUniqueIds(); // 공실 제외, 현재 선택된 멤버들
 
@@ -452,6 +455,7 @@
       if (!anySelected) {
         container.style.display = "block";
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
+        downloadBtn.style.display = "none";
         return;
       }
 
@@ -513,9 +517,12 @@
         floorBlock.appendChild(grid);
         content.appendChild(floorBlock);
       }
+
+      // 미리보기가 있을 때만 "이미지로 저장하기" 버튼 노출
+      downloadBtn.style.display = "inline-block";
     }
 
-    // ★ 미리보기 영역을 PNG 이미지로 다운로드
+    // 미리보기 영역을 PNG 이미지로 다운로드
     function downloadPreviewAsImage() {
       const container = document.getElementById("previewContainer");
       if (!container) return;
@@ -524,7 +531,9 @@
         const link = document.createElement("a");
         link.href = canvas.toDataURL("image/png");
         link.download = "SVT_Mansion.png";
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
       }).catch(err => {
         console.error(err);
         alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
@@ -551,9 +560,6 @@
       // 미리보기 먼저 생성
       renderPreview(results);
 
-      // ★ 미리보기 영역을 이미지로 바로 저장
-      downloadPreviewAsImage();
-
       const payload = {
         submittedAt: new Date().toISOString(),
         userAgent: navigator.userAgent || "",
@@ -572,6 +578,7 @@
     createBuilding();
 
     document.getElementById("saveBtn").addEventListener("click", sendToSheetAndPreview);
+    downloadBtn.addEventListener("click", downloadPreviewAsImage);
   </script>
 </body>
 </html>
