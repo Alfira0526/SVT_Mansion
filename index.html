@@ -276,31 +276,48 @@
       return ids;
     }
 
-    // 모든 셀렉트에서 이미 선택된 멤버는 다른 셀렉트에서 선택 불가
-    function updateAllSelectOptions() {
-      const selected = getSelectedUniqueIds();
-      allSelects.forEach(select => {
-        const currentValue = select.value;
-        Array.from(select.options).forEach(opt => {
-          const val = opt.value;
-          if (!val) {
-            opt.disabled = false;
-            return;
-          }
-          if (val === "공실") {
-            opt.disabled = false; // 공실은 중복 허용
-            return;
-          }
-          if (val === currentValue) {
-            opt.disabled = false; // 자기 자신은 허용
-          } else if (selected.includes(val)) {
-            opt.disabled = true;
-          } else {
-            opt.disabled = false;
-          }
-        });
-      });
-    }
+    // 모든 셀렉트에서 이미 선택된 멤버는 다른 셀렉트의 드롭다운 목록에 아예 안 보이게
+function updateAllSelectOptions() {
+  const selected = getSelectedUniqueIds(); // 공실 제외, 현재 선택된 멤버들
+
+  allSelects.forEach(select => {
+    const currentValue = select.value; // 이 셀렉트가 지금 들고 있는 값
+
+    // 옵션 전부 갈아엎기
+    select.innerHTML = "";
+
+    // 기본값
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "— 선택 —";
+    select.appendChild(defaultOpt);
+
+    residents.forEach(r => {
+      // 공실은 언제나 중복 허용
+      if (r.id === "공실") {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = r.label;
+        select.appendChild(opt);
+        return;
+      }
+
+      // 이미 다른 집에 배치된 멤버면 리스트에서 제거
+      // 단, 이 셀렉트가 지금 그 멤버를 들고 있는 경우는 유지
+      if (r.id !== currentValue && selected.includes(r.id)) {
+        return;
+      }
+
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = r.label;
+      select.appendChild(opt);
+    });
+
+    // 기존 선택 복원 (없으면 자동으로 기본값으로 감)
+    select.value = currentValue;
+  });
+}
 
     function createUnit(floorNumber, unitNumber) {
       const unit = document.createElement("div");
