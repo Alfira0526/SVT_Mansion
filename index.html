@@ -138,6 +138,22 @@
       background: #333;
     }
 
+    .reset-btn {
+      margin-top: 2px;
+      align-self: flex-end;
+      padding: 3px 8px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid #555;
+      background: #2b2b2b;
+      color: #eee;
+      cursor: pointer;
+    }
+
+    .reset-btn:hover {
+      background: #3a3a3a;
+    }
+
     .preview-container {
       margin-top: 16px;
       padding: 16px;
@@ -185,11 +201,15 @@
       color: #bbbbbb;
     }
 
-    .preview-unit img {
+    /* 미리보기에서 이미지는 배경이미지로 렌더링 (크롭 문제 방지) */
+    .preview-avatar {
       width: 48px;
       height: 48px;
       border-radius: 8px;
-      object-fit: cover;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin-bottom: 2px;
     }
 
     .preview-unit-name {
@@ -216,14 +236,14 @@
     <h1>세븐틴 아파트 배치</h1>
     <p class="desc">
       각 집에 입주자를 한 명씩 배치해 주세요. 같은 멤버는 한 번만 배치할 수 있고, 공실은 여러 곳에 둘 수 있습니다.
-      배치를 마친 뒤 <strong>저장하기</strong>를 누르면, 아래에 맨션 배치 미리보기가 생성되고 결과가 Google 시트로 전송됩니다.
+      배치를 마친 뒤 <strong>이사하기</strong>를 누르면, 아래에 맨션 배치 미리보기가 생성되고 결과가 Google 시트로 전송됩니다.
       이후 <strong>이미지로 저장하기</strong> 버튼을 눌러 미리보기를 PNG 이미지로 저장할 수 있습니다.
     </p>
 
     <div id="building" class="building"></div>
 
     <div class="actions">
-      <button id="saveBtn" type="button">저장하기</button>
+      <button id="saveBtn" type="button">이사하기</button>
       <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
     </div>
 
@@ -377,6 +397,19 @@
       view.appendChild(img);
       view.appendChild(info);
 
+      // 각 호실 초기화 버튼
+      const resetBtn = document.createElement("button");
+      resetBtn.type = "button";
+      resetBtn.className = "reset-btn";
+      resetBtn.textContent = "초기화";
+      resetBtn.addEventListener("click", () => {
+        select.value = "";
+        img.style.display = "none";
+        info.textContent = "아직 입주자를 선택하지 않았어요.";
+        info.classList.add("placeholder");
+        updateAllSelectOptions();
+      });
+
       allSelects.push(select);
 
       select.addEventListener("change", () => {
@@ -406,6 +439,7 @@
       unit.appendChild(header);
       unit.appendChild(select);
       unit.appendChild(view);
+      unit.appendChild(resetBtn);
 
       return unit;
     }
@@ -488,10 +522,10 @@
           if (found && found.resident) {
             const residentMeta = residents.find(r => r.id === found.resident);
             if (residentMeta) {
-              const img = document.createElement("img");
-              img.src = residentMeta.img;
-              img.alt = residentMeta.label;
-              unitDiv.appendChild(img);
+              const avatar = document.createElement("div");
+              avatar.className = "preview-avatar";
+              avatar.style.backgroundImage = `url(${residentMeta.img})`;
+              unitDiv.appendChild(avatar);
 
               const name = document.createElement("div");
               name.className = "preview-unit-name";
@@ -524,30 +558,28 @@
 
     // 미리보기 영역을 PNG 이미지로 다운로드
     function downloadPreviewAsImage() {
-  const container = document.getElementById("previewContainer");
-  if (!container) return;
+      const container = document.getElementById("previewContainer");
+      if (!container) return;
 
-  // 현재 화면보다 2배 해상도로 캡처해서 눌리는 느낌/뭉개짐을 줄이기
-  const scale = 2;
+      const scale = 2; // 해상도 업
 
-  html2canvas(container, {
-    backgroundColor: null,
-    scale: scale,                     // 캔버스 해상도 업
-    windowWidth: container.scrollWidth,
-    windowHeight: container.scrollHeight
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.href = canvas.toDataURL("image/png");
-    link.download = "SVT_Mansion.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }).catch(err => {
-    console.error(err);
-    alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
-  });
-}
-
+      html2canvas(container, {
+        backgroundColor: null,
+        scale: scale,
+        windowWidth: container.scrollWidth,
+        windowHeight: container.scrollHeight
+      }).then(canvas => {
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = "SVT_Mansion.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }).catch(err => {
+        console.error(err);
+        alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
+      });
+    }
 
     function sendToSheetAndPreview() {
       const results = collectResults();
@@ -569,6 +601,10 @@
       // 미리보기 먼저 생성
       renderPreview(results);
 
+      // 이대로 이사할지 한 번 더 확인
+      const ok = confirm("이대로 이사할까요?");
+      if (!ok) return;
+
       const payload = {
         submittedAt: new Date().toISOString(),
         userAgent: navigator.userAgent || "",
@@ -579,9 +615,7 @@
       const textarea = document.getElementById("payloadField");
 
       textarea.value = JSON.stringify(payload);
-
       form.submit();
-      alert("배치를 저장했고, Google 시트로 전송했습니다!");
     }
 
     createBuilding();
