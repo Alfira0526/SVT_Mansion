@@ -182,13 +182,13 @@
     .preview-floor-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
+      gap: 14px;  /* 8 → 14 : 카드끼리 가로/세로 간격 넓힘 */
     }
 
     .preview-unit {
       background: #222;
       border-radius: 12px;
-      padding: 10px 8px;
+      padding: 14px 10px;          /* 패딩 살짝 늘려서 테두리와 내용 간격 확보 */
       border: 1px solid #333;
       display: flex;
       flex-direction: column;
@@ -199,26 +199,26 @@
     .preview-unit-label {
       font-size: 13px;
       color: #bbbbbb;
-      margin-bottom: 4px;
+      margin-bottom: 6px;          /* 호수와 선 사이 간격 조금만 늘리기 */
     }
 
     .preview-divider {
-      width: 70%;
+      width: 80%;                  /* 선 길이 살짝 길게 */
       height: 1px;
       background: #444;
-      margin-bottom: 8px;
+      margin-bottom: 10px;         /* 선과 이미지 사이 여유 */
     }
 
-    /* 미리보기에서 이미지는 배경이미지로 렌더링 (크롭 문제 방지) */
-    .preview-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 16px;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      margin-bottom: 6px;
-    }
+    /* 미리보기 아바타: 조금 줄이고, 아래 간격 늘림 */
+.preview-avatar {
+  width: 72px;                 /* 80 → 72 */
+  height: 72px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-bottom: 8px;          /* 이미지와 이름 사이 여유 */
+}
 
     .preview-unit-name {
       font-size: 13px;
