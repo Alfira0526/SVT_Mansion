@@ -4,7 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>💎세븐틴이 한 아파트에 산다면?!</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8E%3C/text%3E%3C/svg%3E" />
   <style>
+    :root {
+      --rose: #f7cac9;
+      --serenity: #92a8d1;
+      --rose-deep: #e79a9a;
+      --serenity-deep: #6f8fc7;
+      --accent-grad: linear-gradient(135deg, #f7cac9 0%, #b79fd0 50%, #92a8d1 100%);
+      --bg: #111;
+      --card: #1b1b1b;
+    }
+
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #111;
@@ -21,8 +32,15 @@
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 26px;
       margin-bottom: 8px;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.3px;
     }
 
     .desc {
@@ -38,6 +56,18 @@
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
       border: 1px solid #333;
       margin-bottom: 16px;
+    }
+
+    .building-rooftop {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      text-align: center;
+      padding: 9px 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
     }
 
     .floor-label {
@@ -62,6 +92,13 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .unit:hover {
+      transform: translateY(-2px);
+      border-color: var(--serenity-deep);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     }
 
     .unit-header {
@@ -105,12 +142,20 @@
     }
 
     .resident-image {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       background: #333;
       object-fit: cover;
       flex-shrink: 0;
+      border: 1.5px solid rgba(247, 202, 201, 0.35);
+      animation: avatarPop 0.35s ease;
+    }
+
+    @keyframes avatarPop {
+      0% { transform: scale(0.7); opacity: 0; }
+      70% { transform: scale(1.06); }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     .placeholder {
@@ -126,17 +171,40 @@
     }
 
     button {
-      padding: 8px 16px;
+      padding: 9px 18px;
       border-radius: 999px;
       border: 1px solid #444;
       background: #222;
       color: #f5f5f5;
       font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
     }
 
     button:hover {
       background: #333;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* 주요 액션(이사하기)은 상징색 그라디언트로 강조 */
+    #saveBtn {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+      border: none;
+      font-weight: 700;
+    }
+
+    #saveBtn:hover {
+      box-shadow: 0 6px 18px rgba(146, 168, 209, 0.35);
+    }
+
+    #shareBtn {
+      border-color: var(--serenity-deep);
     }
 
     button:focus-visible,
@@ -209,26 +277,57 @@
 
     .preview-container {
       margin-top: 16px;
-      padding: 16px;
-      border-radius: 16px;
-      background: #1b1b1b;
-      border: 1px solid #333;
+      padding: 0 0 16px;
+      border-radius: 18px;
+      background:
+        radial-gradient(120% 60% at 50% 0%, rgba(146, 168, 209, 0.12), transparent 60%),
+        #191a1f;
+      border: 1px solid #33343d;
+      overflow: hidden;
+    }
+
+    /* 옥상 사인 */
+    .preview-rooftop {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      text-align: center;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .preview-title {
-      font-size: 16px;
-      margin-bottom: 8px;
+      font-size: 17px;
+      font-weight: 700;
+      margin: 14px 16px 2px;
+      color: #f5f5f5;
+    }
+
+    .preview-date {
+      font-size: 12px;
+      color: #8f97ab;
+      margin: 0 16px 12px;
     }
 
     .preview-floor {
-      margin-bottom: 10px;
+      margin: 0 16px 10px;
+      position: relative;
     }
 
     .preview-floor-label {
-      font-size: 13px;
-      color: #aaaaaa;
-      margin-bottom: 4px;
-      font-weight: 600;
+      display: inline-block;
+      font-size: 12px;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--rose), var(--serenity));
+      padding: 2px 10px;
+      border-radius: 999px;
     }
 
     .preview-floor-grid {
@@ -238,10 +337,14 @@
     }
 
     .preview-unit {
-      background: #222;
+      /* 아파트 창문 느낌: 은은한 실내 조명 + 창틀 */
+      background:
+        radial-gradient(80% 55% at 50% 32%, rgba(247, 202, 201, 0.10), transparent 70%),
+        #202128;
       border-radius: 12px;
-      padding: 14px 10px;          /* 패딩 살짝 늘려서 테두리와 내용 간격 확보 */
-      border: 1px solid #333;
+      padding: 14px 10px;
+      border: 1px solid #34353f;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -263,13 +366,16 @@
 
     /* 미리보기 아바타: 조금 줄이고, 아래 간격 늘림 */
 .preview-avatar {
-  width: 72px;                 /* 80 → 72 */
+  width: 72px;
   height: 72px;
-  border-radius: 16px;
+  border-radius: 14px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  margin-bottom: 8px;          /* 이미지와 이름 사이 여유 */
+  margin-bottom: 8px;
+  border: 2px solid rgba(247, 202, 201, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  animation: avatarPop 0.4s ease both;
 }
 
     .preview-unit-name {
@@ -281,14 +387,33 @@
       color: #666;
     }
 
+    /* 1층 출입구 */
+    .preview-entrance {
+      margin: 4px 16px 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #cfcfe0;
+      background: linear-gradient(180deg, #2a2b33, #202128);
+      border: 1px solid #34353f;
+      border-radius: 10px;
+      padding: 8px;
+    }
+
     .preview-footer {
-      margin-top: 14px;
+      margin: 14px 16px 0;
       padding-top: 12px;
-      border-top: 1px solid #333;
+      border-top: 1px solid #33343d;
       text-align: center;
       font-size: 12px;
       letter-spacing: 0.3px;
-      color: #9a9a9a;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
     }
 
     @media (max-width: 700px) {
@@ -312,9 +437,9 @@
     <h1>💎세븐틴이 한 아파트에 산다면?!</h1>
     <p class="desc">
       각 집에 멤버들을 한 명씩 배치해 주세요! 같은 멤버는 한 번만 배치할 수 있습니다.<br>
-      나는 넣지않을 경우 공실을 두개 배치해주세요.<br>
-      배치를 마친 뒤 <strong>이사하기</strong>를 누르면, 아래에 맨션 배치 미리보기가 생성됩니다!<br>
-      <strong>이미지로 저장하기</strong> 버튼을 눌러 이미지로 저장할 수 있습니다.
+      고민되면 <strong>🎲 랜덤 배치</strong>로 한 번에 채울 수 있어요. (나는 안 넣을 경우 공실을 두 개 두면 됩니다.)<br>
+      배치를 마친 뒤 <strong>이사하기</strong>를 누르면 아래에 입주 현황 미리보기가 생성됩니다!<br>
+      <strong>이미지로 저장하기</strong> 또는 <strong>📲 공유하기</strong>로 결과를 남겨보세요. 배치는 자동 저장됩니다.
     </p>
 
     <div id="building" class="building"></div>
@@ -328,8 +453,11 @@
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
-      <div class="preview-title">💎 SVT 아파트 주민현황</div>
+      <div class="preview-rooftop">🏢 SVT APARTMENT <span>💎</span></div>
+      <div class="preview-title">우리 아파트 입주 현황</div>
+      <div class="preview-date" id="previewDate"></div>
       <div id="previewContent"></div>
+      <div class="preview-entrance">🚪 1F · ENTRANCE</div>
       <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
     </div>
   </div>
@@ -601,6 +729,11 @@
     }
 
     function createBuilding() {
+      const rooftop = document.createElement("div");
+      rooftop.className = "building-rooftop";
+      rooftop.textContent = "🏢 SVT APARTMENT · 5F";
+      buildingEl.appendChild(rooftop);
+
       for (let f = FLOORS; f >= 1; f--) {
         const floorLabel = document.createElement("div");
         floorLabel.className = "floor-label";
@@ -652,6 +785,14 @@
 
       container.style.display = "block";
       content.innerHTML = "";
+
+      // 공유 이미지용 날짜 표기
+      const dateEl = document.getElementById("previewDate");
+      if (dateEl) {
+        dateEl.textContent = new Date().toLocaleDateString("ko-KR", {
+          year: "numeric", month: "long", day: "numeric"
+        }) + " 기준";
+      }
 
       for (let f = FLOORS; f >= 1; f--) {
         const floorBlock = document.createElement("div");
