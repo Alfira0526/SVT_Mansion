@@ -489,6 +489,8 @@
         action="https://script.google.com/macros/s/AKfycbwjPvSyXBUFE0gJTFnajOl1ECAgwcnrH4WXxVng57yL7TzU7gzqmsRMGnKRN_0i3m9Y2w/exec"
         style="display:none;">
     <textarea name="payload" id="payloadField"></textarea>
+    <!-- 허니팟: 사람은 못 보고 봇만 채움 → 서버에서 걸러냄 -->
+    <input type="text" name="hp" id="hpField" tabindex="-1" autocomplete="off" aria-hidden="true" />
   </form>
   <iframe name="hidden_iframe" style="display:none;"></iframe>
 
@@ -496,6 +498,14 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <!-- html2canvas CDN (jsdelivr 실패 시 unpkg 로 자동 폴백) -->
+  <!--
+    [벤더링(로컬 우선) 전환 방법 — vendor/README.md 참고]
+    vendor/html2canvas.min.js 파일을 리포에 넣은 뒤, 아래 CDN 스크립트를
+    다음 한 줄로 교체하면 로컬 우선 + CDN 폴백이 됩니다:
+
+    <script src="vendor/html2canvas.min.js"
+      onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"></script>
+  -->
   <script
     src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
     onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"
@@ -1001,6 +1011,17 @@
         return;
       }
 
+      // 간이 스로틀: 5초 내 연속 전송 차단 (오연타/봇 스팸 완화)
+      const SUBMIT_COOLDOWN_MS = 5000;
+      const now = Date.now();
+      let lastSubmit = 0;
+      try { lastSubmit = Number(localStorage.getItem("svt_last_submit")) || 0; } catch (e) {}
+      if (now - lastSubmit < SUBMIT_COOLDOWN_MS) {
+        const wait = Math.ceil((SUBMIT_COOLDOWN_MS - (now - lastSubmit)) / 1000);
+        showToast(`잠시 후 다시 시도해 주세요 (${wait}초)`, "error");
+        return;
+      }
+
       // 이사 확정 여부 먼저 확인 → 그 다음 미리보기 생성 (흐름 순서 정리)
       const ok = confirm("이대로 이사할까요?");
       if (!ok) return;
@@ -1020,6 +1041,9 @@
       const form = document.getElementById("gsheetForm");
       const textarea = document.getElementById("payloadField");
       textarea.value = JSON.stringify(payload);
+
+      // 스로틀 타임스탬프 기록
+      try { localStorage.setItem("svt_last_submit", String(Date.now())); } catch (e) {}
 
       showToast("이사 정보를 저장하는 중… 🚚");
       sheetSubmitPending = true;
