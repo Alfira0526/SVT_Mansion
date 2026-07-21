@@ -4,13 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>💎세븐틴이 한 아파트에 산다면?!</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8E%3C/text%3E%3C/svg%3E" />
   <style>
+    :root {
+      --rose: #f7cac9;
+      --serenity: #92a8d1;
+      --rose-deep: #e79a9a;
+      --serenity-deep: #6f8fc7;
+      --accent-grad: linear-gradient(135deg, #f7cac9 0%, #b79fd0 50%, #92a8d1 100%);
+
+      /* 표면 (한 단계 밝은 blue-charcoal 다크) */
+      --bg: #1b1c22;
+      --card: #24252e;
+      --surface: #2c2d37;      /* unit·버튼 배경 */
+      --surface-2: #383a45;    /* hover·divider */
+      --border: #43454f;
+      --border-soft: #3a3c46;
+
+      /* 텍스트 */
+      --text: #f5f6f8;
+      --text-muted: #c9cad3;
+      --text-dim: #9a9ca8;
+
+      /* 미리보기(공유 카드) 표면 */
+      --pv-bg: #22232b;
+      --pv-unit: #2a2b35;
+      --pv-border: #3d3f4a;
+    }
+
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #111;
-      color: #f5f5f5;
+      background:
+        radial-gradient(120% 80% at 50% -10%, rgba(146, 168, 209, 0.10), transparent 55%),
+        var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 24px;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
     }
@@ -21,29 +51,48 @@
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 26px;
       margin-bottom: 8px;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.3px;
     }
 
     .desc {
       font-size: 14px;
       margin-bottom: 20px;
-      color: #bbbbbb;
+      color: var(--text-muted);
     }
 
     .building {
       border-radius: 16px;
       padding: 16px;
-      background: #1b1b1b;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
-      border: 1px solid #333;
+      background: var(--card);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--border);
       margin-bottom: 16px;
+    }
+
+    .building-rooftop {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      text-align: center;
+      padding: 9px 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
     }
 
     .floor-label {
       font-size: 14px;
       margin: 10px 0 4px;
-      color: #aaaaaa;
+      color: var(--text-muted);
       font-weight: 600;
     }
 
@@ -55,13 +104,20 @@
     }
 
     .unit {
-      background: #222;
+      background: var(--surface);
       border-radius: 12px;
       padding: 10px;
-      border: 1px solid #333;
+      border: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       gap: 6px;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .unit:hover {
+      transform: translateY(-2px);
+      border-color: var(--serenity-deep);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     }
 
     .unit-header {
@@ -69,7 +125,7 @@
       justify-content: space-between;
       align-items: center;
       font-size: 13px;
-      color: #cfcfcf;
+      color: var(--text-muted);
     }
 
     .unit-header span.unit-name {
@@ -80,15 +136,15 @@
       width: 100%;
       padding: 6px 8px;
       border-radius: 8px;
-      border: 1px solid #444;
-      background: #111;
-      color: #f5f5f5;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
       font-size: 13px;
     }
 
     select.resident-select:focus {
       outline: none;
-      border-color: #888;
+      border-color: var(--serenity);
     }
 
     .resident-view {
@@ -101,21 +157,29 @@
 
     .resident-info {
       font-size: 13px;
-      color: #dddddd;
+      color: var(--text-muted);
     }
 
     .resident-image {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: #333;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--surface-2);
       object-fit: cover;
       flex-shrink: 0;
+      border: 1.5px solid rgba(247, 202, 201, 0.35);
+      animation: avatarPop 0.35s ease;
+    }
+
+    @keyframes avatarPop {
+      0% { transform: scale(0.7); opacity: 0; }
+      70% { transform: scale(1.06); }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     .placeholder {
       font-size: 12px;
-      color: #777;
+      color: var(--text-dim);
     }
 
     .actions {
@@ -126,17 +190,92 @@
     }
 
     button {
-      padding: 8px 16px;
+      padding: 9px 18px;
       border-radius: 999px;
-      border: 1px solid #444;
-      background: #222;
-      color: #f5f5f5;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
       font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease, box-shadow 0.15s ease;
     }
 
     button:hover {
-      background: #333;
+      background: var(--surface-2);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    /* 주요 액션(이사하기)은 상징색 그라디언트로 강조 */
+    #saveBtn {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+      border: none;
+      font-weight: 700;
+    }
+
+    #saveBtn:hover {
+      box-shadow: 0 6px 18px rgba(146, 168, 209, 0.35);
+    }
+
+    #shareBtn {
+      border-color: var(--serenity-deep);
+    }
+
+    button:focus-visible,
+    select.resident-select:focus-visible {
+      outline: 2px solid #92b9e3;
+      outline-offset: 2px;
+    }
+
+    .ghost-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border-color: var(--border-soft);
+    }
+
+    .ghost-btn:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      background: #30323d;
+      color: var(--text);
+      padding: 11px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 1000;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error {
+      background: #4a2323;
+      border-color: #7a3a3a;
+    }
+
+    .toast.success {
+      background: #23402f;
+      border-color: #3a7a55;
     }
 
     .reset-btn {
@@ -145,38 +284,70 @@
       padding: 3px 8px;
       font-size: 11px;
       border-radius: 999px;
-      border: 1px solid #555;
-      background: #2b2b2b;
-      color: #eee;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
       cursor: pointer;
     }
 
     .reset-btn:hover {
-      background: #3a3a3a;
+      background: #454754;
+      color: var(--text);
     }
 
     .preview-container {
       margin-top: 16px;
-      padding: 16px;
-      border-radius: 16px;
-      background: #1b1b1b;
-      border: 1px solid #333;
+      padding: 0 0 16px;
+      border-radius: 18px;
+      background:
+        radial-gradient(120% 60% at 50% 0%, rgba(146, 168, 209, 0.14), transparent 60%),
+        var(--pv-bg);
+      border: 1px solid var(--pv-border);
+      overflow: hidden;
+    }
+
+    /* 옥상 사인 */
+    .preview-rooftop {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      text-align: center;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .preview-title {
-      font-size: 16px;
-      margin-bottom: 8px;
+      font-size: 17px;
+      font-weight: 700;
+      margin: 14px 16px 2px;
+      color: var(--text);
+    }
+
+    .preview-date {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin: 0 16px 12px;
     }
 
     .preview-floor {
-      margin-bottom: 10px;
+      margin: 0 16px 10px;
+      position: relative;
     }
 
     .preview-floor-label {
-      font-size: 13px;
-      color: #aaaaaa;
-      margin-bottom: 4px;
-      font-weight: 600;
+      display: inline-block;
+      font-size: 12px;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--rose), var(--serenity));
+      padding: 2px 10px;
+      border-radius: 999px;
     }
 
     .preview-floor-grid {
@@ -186,10 +357,14 @@
     }
 
     .preview-unit {
-      background: #222;
+      /* 아파트 창문 느낌: 은은한 실내 조명 + 창틀 */
+      background:
+        radial-gradient(80% 55% at 50% 32%, rgba(247, 202, 201, 0.13), transparent 70%),
+        var(--pv-unit);
       border-radius: 12px;
-      padding: 14px 10px;          /* 패딩 살짝 늘려서 테두리와 내용 간격 확보 */
-      border: 1px solid #333;
+      padding: 14px 10px;
+      border: 1px solid var(--pv-border);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -198,26 +373,29 @@
 
     .preview-unit-label {
       font-size: 13px;
-      color: #bbbbbb;
+      color: var(--text-muted);
       margin-bottom: 6px;          /* 호수와 선 사이 간격 조금만 늘리기 */
     }
 
     .preview-divider {
       width: 80%;                  /* 선 길이 살짝 길게 */
       height: 1px;
-      background: #444;
+      background: var(--surface-2);
       margin-bottom: 10px;         /* 선과 이미지 사이 여유 */
     }
 
     /* 미리보기 아바타: 조금 줄이고, 아래 간격 늘림 */
 .preview-avatar {
-  width: 72px;                 /* 80 → 72 */
+  width: 72px;
   height: 72px;
-  border-radius: 16px;
+  border-radius: 14px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  margin-bottom: 8px;          /* 이미지와 이름 사이 여유 */
+  margin-bottom: 8px;
+  border: 2px solid rgba(247, 202, 201, 0.45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  animation: avatarPop 0.4s ease both;
 }
 
     .preview-unit-name {
@@ -226,7 +404,36 @@
 
     .preview-empty {
       font-size: 12px;
-      color: #666;
+      color: var(--text-dim);
+    }
+
+    /* 1층 출입구 */
+    .preview-entrance {
+      margin: 4px 16px 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #d6d7e2;
+      background: linear-gradient(180deg, #33343f, var(--pv-unit));
+      border: 1px solid var(--pv-border);
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    .preview-footer {
+      margin: 14px 16px 0;
+      padding-top: 12px;
+      border-top: 1px solid var(--pv-border);
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
     }
 
     @media (max-width: 700px) {
@@ -250,21 +457,28 @@
     <h1>💎세븐틴이 한 아파트에 산다면?!</h1>
     <p class="desc">
       각 집에 멤버들을 한 명씩 배치해 주세요! 같은 멤버는 한 번만 배치할 수 있습니다.<br>
-      나는 넣지않을 경우 공실을 두개 배치해주세요.<br>
-      배치를 마친 뒤 <strong>이사하기</strong>를 누르면, 아래에 맨션 배치 미리보기가 생성됩니다!<br>
-      <strong>이미지로 저장하기</strong> 버튼을 눌러 이미지로 저장할 수 있습니다.
+      고민되면 <strong>🎲 랜덤 배치</strong>로 한 번에 채울 수 있어요. (나는 안 넣을 경우 공실을 두 개 두면 됩니다.)<br>
+      배치를 마친 뒤 <strong>이사하기</strong>를 누르면 아래에 입주 현황 미리보기가 생성됩니다!<br>
+      <strong>이미지로 저장하기</strong> 또는 <strong>📲 공유하기</strong>로 결과를 남겨보세요. 배치는 자동 저장됩니다.
     </p>
 
     <div id="building" class="building"></div>
 
     <div class="actions">
+      <button id="randomBtn" type="button" aria-label="멤버 무작위 배치">🎲 랜덤 배치</button>
       <button id="saveBtn" type="button">이사하기</button>
+      <button id="clearBtn" type="button" class="ghost-btn" aria-label="전체 배치 초기화">전체 초기화</button>
       <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
+      <button id="shareBtn" type="button" style="display:none;">📲 공유하기</button>
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
-      <div class="preview-title">SVT 아파트 주민현황</div>
+      <div class="preview-rooftop">🏢 SVT APARTMENT <span>💎</span></div>
+      <div class="preview-title">우리 아파트 입주 현황</div>
+      <div class="preview-date" id="previewDate"></div>
       <div id="previewContent"></div>
+      <div class="preview-entrance">🚪 1F · ENTRANCE</div>
+      <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
     </div>
   </div>
 
@@ -275,11 +489,27 @@
         action="https://script.google.com/macros/s/AKfycbwjPvSyXBUFE0gJTFnajOl1ECAgwcnrH4WXxVng57yL7TzU7gzqmsRMGnKRN_0i3m9Y2w/exec"
         style="display:none;">
     <textarea name="payload" id="payloadField"></textarea>
+    <!-- 허니팟: 사람은 못 보고 봇만 채움 → 서버에서 걸러냄 -->
+    <input type="text" name="hp" id="hpField" tabindex="-1" autocomplete="off" aria-hidden="true" />
   </form>
   <iframe name="hidden_iframe" style="display:none;"></iframe>
 
-  <!-- html2canvas CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- 전송/저장 상태 토스트 -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- html2canvas CDN (jsdelivr 실패 시 unpkg 로 자동 폴백) -->
+  <!--
+    [벤더링(로컬 우선) 전환 방법 — vendor/README.md 참고]
+    vendor/html2canvas.min.js 파일을 리포에 넣은 뒤, 아래 CDN 스크립트를
+    다음 한 줄로 교체하면 로컬 우선 + CDN 폴백이 됩니다:
+
+    <script src="vendor/html2canvas.min.js"
+      onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"></script>
+  -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+    onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"
+  ></script>
 
   <script>
     const FLOORS = 5;
@@ -305,6 +535,69 @@
     const buildingEl = document.getElementById("building");
     const allSelects = [];
     const downloadBtn = document.getElementById("downloadBtn");
+    const shareBtn = document.getElementById("shareBtn");
+
+    // ---- 상태 저장/복원 (localStorage) ----
+    const STORAGE_KEY = "svt_mansion_state_v1";
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(collectResults()));
+      } catch (e) { /* 프라이빗 모드 등 저장 불가 시 무시 */ }
+    }
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    // createBuilding 이후, 저장된 배치를 셀렉트에 복원
+    function restoreState(saved) {
+      if (!Array.isArray(saved)) return;
+      const byKey = {};
+      saved.forEach(r => { byKey[`${r.floor}-${r.unit}`] = r.resident; });
+      document.querySelectorAll(".unit").forEach(unit => {
+        const key = `${unit.dataset.floor}-${unit.dataset.unit}`;
+        const val = byKey[key];
+        const sel = unit.querySelector("select.resident-select");
+        if (sel && val) sel.value = val;
+      });
+      allSelects.forEach(sel => sel.dispatchEvent(new Event("change")));
+    }
+
+    function clearAll() {
+      allSelects.forEach(sel => { sel.value = ""; });
+      updateAllSelectOptions();
+      allSelects.forEach(sel => sel.dispatchEvent(new Event("change")));
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      // 미리보기/공유 버튼 숨김
+      document.getElementById("previewContainer").style.display = "none";
+      downloadBtn.style.display = "none";
+      shareBtn.style.display = "none";
+      showToast("전체 배치를 초기화했어요.");
+    }
+
+    // ---- 토스트 ----
+    let toastTimer = null;
+    function showToast(message, type) {
+      const el = document.getElementById("toast");
+      if (!el) return;
+      el.textContent = message;
+      el.className = "toast show" + (type ? " " + type : "");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = "toast"; }, 2800);
+    }
+
+    // ---- html2canvas 로드 가드 ----
+    function ensureLib() {
+      if (typeof html2canvas === "undefined") {
+        showToast("이미지 기능 로딩에 실패했어요. 네트워크 확인 후 새로고침 해주세요.", "error");
+        return false;
+      }
+      return true;
+    }
 
     // 이미 선택된 (공실 제외) 멤버 목록
     function getSelectedUniqueIds() {
@@ -384,6 +677,7 @@
 
       const select = document.createElement("select");
       select.className = "resident-select";
+      select.setAttribute("aria-label", `${roomNumber}호 입주자 선택`);
 
       const defaultOpt = document.createElement("option");
       defaultOpt.value = "";
@@ -404,6 +698,8 @@
       img.className = "resident-image";
       img.alt = "";
       img.style.display = "none";
+      // 이미지 로드 실패 시 깨진 아이콘 대신 조용히 숨김 (이름표는 유지)
+      img.addEventListener("error", () => { img.style.display = "none"; });
 
       const info = document.createElement("div");
       info.className = "resident-info placeholder";
@@ -417,12 +713,14 @@
       resetBtn.type = "button";
       resetBtn.className = "reset-btn";
       resetBtn.textContent = "초기화";
+      resetBtn.setAttribute("aria-label", `${roomNumber}호 초기화`);
       resetBtn.addEventListener("click", () => {
         select.value = "";
         img.style.display = "none";
         info.textContent = "아직 입주자를 선택하지 않았어요.";
         info.classList.add("placeholder");
         updateAllSelectOptions();
+        saveState();
       });
 
       allSelects.push(select);
@@ -449,6 +747,7 @@
         }
 
         updateAllSelectOptions();
+        saveState();
       });
 
       unit.appendChild(header);
@@ -460,6 +759,11 @@
     }
 
     function createBuilding() {
+      const rooftop = document.createElement("div");
+      rooftop.className = "building-rooftop";
+      rooftop.textContent = "🏢 SVT APARTMENT · 5F";
+      buildingEl.appendChild(rooftop);
+
       for (let f = FLOORS; f >= 1; f--) {
         const floorLabel = document.createElement("div");
         floorLabel.className = "floor-label";
@@ -505,11 +809,20 @@
         container.style.display = "block";
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
         downloadBtn.style.display = "none";
+        shareBtn.style.display = "none";
         return;
       }
 
       container.style.display = "block";
       content.innerHTML = "";
+
+      // 공유 이미지용 날짜 표기
+      const dateEl = document.getElementById("previewDate");
+      if (dateEl) {
+        dateEl.textContent = new Date().toLocaleDateString("ko-KR", {
+          year: "numeric", month: "long", day: "numeric"
+        }) + " 기준";
+      }
 
       for (let f = FLOORS; f >= 1; f--) {
         const floorBlock = document.createElement("div");
@@ -571,46 +884,114 @@
         content.appendChild(floorBlock);
       }
 
-      // 미리보기가 있을 때만 "이미지로 저장하기" 버튼 노출
+      // 미리보기가 있을 때만 저장/공유 버튼 노출
       downloadBtn.style.display = "inline-block";
+      shareBtn.style.display = "inline-block";
     }
 
-    // 미리보기 영역을 PNG 이미지로 다운로드
-function downloadPreviewAsImage() {
-  const container = document.getElementById("previewContainer");
-  if (!container) return;
+    // 공유/저장 공통 문구
+    const SHARE_TEXT = "내가 배치한 세븐틴 아파트 🏢💎\n#세븐틴아파트 #SVT_Mansion";
 
-  const scale = 2; // 해상도 업
+    // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유가 공유하는 헬퍼)
+    function renderPreviewBlob() {
+      const container = document.getElementById("previewContainer");
+      if (!container) return Promise.reject(new Error("previewContainer 없음"));
 
-  html2canvas(container, {
-    backgroundColor: null,
-    scale: scale,
-    windowWidth: container.scrollWidth,
-    windowHeight: container.scrollHeight
-  }).then(canvas => {
-    // dataURL 대신 Blob + ObjectURL 사용 (모바일에서 파일명 적용 잘 되도록)
-    canvas.toBlob(function (blob) {
-      if (!blob) {
-        alert("이미지 생성에 실패했습니다. 다시 시도해 주세요.");
-        return;
-      }
+      return html2canvas(container, {
+        backgroundColor: null,
+        scale: 2, // 해상도 업
+        windowWidth: container.scrollWidth,
+        windowHeight: container.scrollHeight
+      }).then(canvas => new Promise((resolve, reject) => {
+        // dataURL 대신 Blob 사용 (모바일에서 파일명/공유 적용 잘 되도록)
+        canvas.toBlob(blob => {
+          blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
+        }, "image/png");
+      }));
+    }
 
+    // Blob 을 파일로 다운로드
+    function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "SVT_Mansion.png"; // ✅ 여기서 원하는 파일명 지정
-
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       URL.revokeObjectURL(url);
-    }, "image/png");
-  }).catch(err => {
-    console.error(err);
-    alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
-  });
-}
+    }
+
+    // 미리보기 영역을 PNG 이미지로 다운로드
+    function downloadPreviewAsImage() {
+      if (!ensureLib()) return;
+      renderPreviewBlob()
+        .then(blob => {
+          downloadBlob(blob, "SVT_Mansion.png");
+          showToast("이미지를 저장했어요! 📷", "success");
+        })
+        .catch(err => {
+          console.error(err);
+          showToast("이미지 저장 중 오류가 발생했어요. 새로고침 후 다시 시도해 주세요.", "error");
+        });
+    }
+
+    // 원탭 공유 (Web Share API) — 미지원 시 다운로드 + 문구 복사로 폴백
+    function sharePreview() {
+      if (!ensureLib()) return;
+      renderPreviewBlob()
+        .then(blob => {
+          const file = new File([blob], "SVT_Mansion.png", { type: "image/png" });
+
+          if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            return navigator.share({ files: [file], text: SHARE_TEXT }).catch(err => {
+              // 사용자가 공유 시트를 닫은 경우는 오류 아님
+              if (err && err.name === "AbortError") return;
+              throw err;
+            });
+          }
+
+          // 폴백: 이미지 저장 + 공유 문구 클립보드 복사
+          downloadBlob(blob, "SVT_Mansion.png");
+          const copyText = SHARE_TEXT + "\n" + location.href;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(copyText)
+              .then(() => alert("이 브라우저는 바로 공유를 지원하지 않아요.\n이미지를 저장했고 공유 문구를 복사했어요! 트위터에 붙여넣어 주세요 🐦"))
+              .catch(() => alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText));
+          }
+          alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText);
+        })
+        .catch(err => {
+          console.error(err);
+          showToast("공유 준비 중 오류가 발생했어요. 다시 시도해 주세요.", "error");
+        });
+    }
+
+    // 배열 제자리 셔플 (Fisher–Yates)
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // 🎲 랜덤 배치: 멤버 13명 + 캐럿을 무작위 14칸에 배치, 나머지 1칸은 공실
+    function randomAssign() {
+      // 모든 옵션 복원 후 초기화
+      allSelects.forEach(sel => { sel.value = ""; });
+      updateAllSelectOptions();
+
+      const pool = shuffle(residents.filter(r => r.id !== "공실").map(r => r.id));
+      const slots = shuffle(allSelects.slice());
+
+      slots.forEach((sel, i) => {
+        sel.value = i < pool.length ? pool[i] : "";
+      });
+      // 아바타/이름 렌더 + 중복 필터 갱신 (기존 change 로직 재사용, saveState 포함)
+      allSelects.forEach(sel => sel.dispatchEvent(new Event("change")));
+      showToast("무작위로 배치했어요! 🎲");
+    }
 
 
     function sendToSheetAndPreview() {
@@ -630,13 +1011,27 @@ function downloadPreviewAsImage() {
         return;
       }
 
-      // 미리보기 먼저 생성
-      renderPreview(results);
+      // 간이 스로틀: 5초 내 연속 전송 차단 (오연타/봇 스팸 완화)
+      const SUBMIT_COOLDOWN_MS = 5000;
+      const now = Date.now();
+      let lastSubmit = 0;
+      try { lastSubmit = Number(localStorage.getItem("svt_last_submit")) || 0; } catch (e) {}
+      if (now - lastSubmit < SUBMIT_COOLDOWN_MS) {
+        const wait = Math.ceil((SUBMIT_COOLDOWN_MS - (now - lastSubmit)) / 1000);
+        showToast(`잠시 후 다시 시도해 주세요 (${wait}초)`, "error");
+        return;
+      }
 
-      // 이대로 이사할지 한 번 더 확인
+      // 이사 확정 여부 먼저 확인 → 그 다음 미리보기 생성 (흐름 순서 정리)
       const ok = confirm("이대로 이사할까요?");
       if (!ok) return;
 
+      // 미리보기 생성
+      renderPreview(results);
+      // 미리보기 위치로 부드럽게 스크롤
+      document.getElementById("previewContainer").scrollIntoView({ behavior: "smooth", block: "start" });
+
+      // 시트 전송
       const payload = {
         submittedAt: new Date().toISOString(),
         userAgent: navigator.userAgent || "",
@@ -645,15 +1040,43 @@ function downloadPreviewAsImage() {
 
       const form = document.getElementById("gsheetForm");
       const textarea = document.getElementById("payloadField");
-
       textarea.value = JSON.stringify(payload);
+
+      // 스로틀 타임스탬프 기록
+      try { localStorage.setItem("svt_last_submit", String(Date.now())); } catch (e) {}
+
+      showToast("이사 정보를 저장하는 중… 🚚");
+      sheetSubmitPending = true;
       form.submit();
+
+      // onload 가 안 오는 환경(광고차단/오프라인) 대비 타임아웃 폴백
+      if (sheetTimeoutId) clearTimeout(sheetTimeoutId);
+      sheetTimeoutId = setTimeout(() => {
+        if (sheetSubmitPending) {
+          sheetSubmitPending = false;
+          showToast("미리보기는 생성됐어요. (전송 확인은 안 될 수 있어요)", "success");
+        }
+      }, 6000);
     }
 
+    // 숨겨진 iframe 응답 → 전송 완료 토스트
+    let sheetSubmitPending = false;
+    let sheetTimeoutId = null;
+    document.querySelector('iframe[name="hidden_iframe"]').addEventListener("load", () => {
+      if (!sheetSubmitPending) return; // 최초 로드는 무시
+      sheetSubmitPending = false;
+      if (sheetTimeoutId) clearTimeout(sheetTimeoutId);
+      showToast("이사 완료! 입주 현황이 저장됐어요 🎉", "success");
+    });
+
     createBuilding();
+    restoreState(loadSavedState());
 
     document.getElementById("saveBtn").addEventListener("click", sendToSheetAndPreview);
+    document.getElementById("randomBtn").addEventListener("click", randomAssign);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
     downloadBtn.addEventListener("click", downloadPreviewAsImage);
+    shareBtn.addEventListener("click", sharePreview);
   </script>
 </body>
 </html>
