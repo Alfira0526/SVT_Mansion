@@ -229,6 +229,16 @@
       color: #666;
     }
 
+    .preview-footer {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #333;
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      color: #9a9a9a;
+    }
+
     @media (max-width: 700px) {
   /* 위쪽 '입주자 선택' 화면은 모바일에서 1열로 */
   .floor {
@@ -258,13 +268,16 @@
     <div id="building" class="building"></div>
 
     <div class="actions">
+      <button id="randomBtn" type="button">🎲 랜덤 배치</button>
       <button id="saveBtn" type="button">이사하기</button>
       <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
+      <button id="shareBtn" type="button" style="display:none;">📲 공유하기</button>
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
-      <div class="preview-title">SVT 아파트 주민현황</div>
+      <div class="preview-title">💎 SVT 아파트 주민현황</div>
       <div id="previewContent"></div>
+      <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
     </div>
   </div>
 
@@ -305,6 +318,7 @@
     const buildingEl = document.getElementById("building");
     const allSelects = [];
     const downloadBtn = document.getElementById("downloadBtn");
+    const shareBtn = document.getElementById("shareBtn");
 
     // 이미 선택된 (공실 제외) 멤버 목록
     function getSelectedUniqueIds() {
@@ -505,6 +519,7 @@
         container.style.display = "block";
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
         downloadBtn.style.display = "none";
+        shareBtn.style.display = "none";
         return;
       }
 
@@ -571,46 +586,108 @@
         content.appendChild(floorBlock);
       }
 
-      // 미리보기가 있을 때만 "이미지로 저장하기" 버튼 노출
+      // 미리보기가 있을 때만 저장/공유 버튼 노출
       downloadBtn.style.display = "inline-block";
+      shareBtn.style.display = "inline-block";
     }
 
-    // 미리보기 영역을 PNG 이미지로 다운로드
-function downloadPreviewAsImage() {
-  const container = document.getElementById("previewContainer");
-  if (!container) return;
+    // 공유/저장 공통 문구
+    const SHARE_TEXT = "내가 배치한 세븐틴 아파트 🏢💎\n#세븐틴아파트 #SVT_Mansion";
 
-  const scale = 2; // 해상도 업
+    // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유가 공유하는 헬퍼)
+    function renderPreviewBlob() {
+      const container = document.getElementById("previewContainer");
+      if (!container) return Promise.reject(new Error("previewContainer 없음"));
 
-  html2canvas(container, {
-    backgroundColor: null,
-    scale: scale,
-    windowWidth: container.scrollWidth,
-    windowHeight: container.scrollHeight
-  }).then(canvas => {
-    // dataURL 대신 Blob + ObjectURL 사용 (모바일에서 파일명 적용 잘 되도록)
-    canvas.toBlob(function (blob) {
-      if (!blob) {
-        alert("이미지 생성에 실패했습니다. 다시 시도해 주세요.");
-        return;
-      }
+      return html2canvas(container, {
+        backgroundColor: null,
+        scale: 2, // 해상도 업
+        windowWidth: container.scrollWidth,
+        windowHeight: container.scrollHeight
+      }).then(canvas => new Promise((resolve, reject) => {
+        // dataURL 대신 Blob 사용 (모바일에서 파일명/공유 적용 잘 되도록)
+        canvas.toBlob(blob => {
+          blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
+        }, "image/png");
+      }));
+    }
 
+    // Blob 을 파일로 다운로드
+    function downloadBlob(blob, filename) {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "SVT_Mansion.png"; // ✅ 여기서 원하는 파일명 지정
-
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       URL.revokeObjectURL(url);
-    }, "image/png");
-  }).catch(err => {
-    console.error(err);
-    alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
-  });
-}
+    }
+
+    // 미리보기 영역을 PNG 이미지로 다운로드
+    function downloadPreviewAsImage() {
+      renderPreviewBlob()
+        .then(blob => downloadBlob(blob, "SVT_Mansion.png"))
+        .catch(err => {
+          console.error(err);
+          alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
+        });
+    }
+
+    // 원탭 공유 (Web Share API) — 미지원 시 다운로드 + 문구 복사로 폴백
+    function sharePreview() {
+      renderPreviewBlob()
+        .then(blob => {
+          const file = new File([blob], "SVT_Mansion.png", { type: "image/png" });
+
+          if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            return navigator.share({ files: [file], text: SHARE_TEXT }).catch(err => {
+              // 사용자가 공유 시트를 닫은 경우는 오류 아님
+              if (err && err.name === "AbortError") return;
+              throw err;
+            });
+          }
+
+          // 폴백: 이미지 저장 + 공유 문구 클립보드 복사
+          downloadBlob(blob, "SVT_Mansion.png");
+          const copyText = SHARE_TEXT + "\n" + location.href;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(copyText)
+              .then(() => alert("이 브라우저는 바로 공유를 지원하지 않아요.\n이미지를 저장했고 공유 문구를 복사했어요! 트위터에 붙여넣어 주세요 🐦"))
+              .catch(() => alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText));
+          }
+          alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText);
+        })
+        .catch(err => {
+          console.error(err);
+          alert("공유 준비 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        });
+    }
+
+    // 배열 제자리 셔플 (Fisher–Yates)
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // 🎲 랜덤 배치: 멤버 13명 + 캐럿을 무작위 14칸에 배치, 나머지 1칸은 공실
+    function randomAssign() {
+      // 모든 옵션 복원 후 초기화
+      allSelects.forEach(sel => { sel.value = ""; });
+      updateAllSelectOptions();
+
+      const pool = shuffle(residents.filter(r => r.id !== "공실").map(r => r.id));
+      const slots = shuffle(allSelects.slice());
+
+      slots.forEach((sel, i) => {
+        sel.value = i < pool.length ? pool[i] : "";
+      });
+      // 아바타/이름 렌더 + 중복 필터 갱신 (기존 change 로직 재사용)
+      allSelects.forEach(sel => sel.dispatchEvent(new Event("change")));
+    }
 
 
     function sendToSheetAndPreview() {
@@ -653,7 +730,9 @@ function downloadPreviewAsImage() {
     createBuilding();
 
     document.getElementById("saveBtn").addEventListener("click", sendToSheetAndPreview);
+    document.getElementById("randomBtn").addEventListener("click", randomAssign);
     downloadBtn.addEventListener("click", downloadPreviewAsImage);
+    shareBtn.addEventListener("click", sharePreview);
   </script>
 </body>
 </html>
