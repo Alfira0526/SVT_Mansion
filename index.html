@@ -139,6 +139,58 @@
       background: #333;
     }
 
+    button:focus-visible,
+    select.resident-select:focus-visible {
+      outline: 2px solid #92b9e3;
+      outline-offset: 2px;
+    }
+
+    .ghost-btn {
+      background: transparent;
+      color: #bbb;
+      border-color: #3a3a3a;
+    }
+
+    .ghost-btn:hover {
+      background: #241f22;
+      color: #eee;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%) translateY(20px);
+      background: #2a2a2a;
+      color: #f5f5f5;
+      padding: 11px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid #444;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 1000;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.error {
+      background: #4a2323;
+      border-color: #7a3a3a;
+    }
+
+    .toast.success {
+      background: #23402f;
+      border-color: #3a7a55;
+    }
+
     .reset-btn {
       margin-top: 2px;
       align-self: flex-end;
@@ -268,8 +320,9 @@
     <div id="building" class="building"></div>
 
     <div class="actions">
-      <button id="randomBtn" type="button">🎲 랜덤 배치</button>
+      <button id="randomBtn" type="button" aria-label="멤버 무작위 배치">🎲 랜덤 배치</button>
       <button id="saveBtn" type="button">이사하기</button>
+      <button id="clearBtn" type="button" class="ghost-btn" aria-label="전체 배치 초기화">전체 초기화</button>
       <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
       <button id="shareBtn" type="button" style="display:none;">📲 공유하기</button>
     </div>
@@ -291,8 +344,14 @@
   </form>
   <iframe name="hidden_iframe" style="display:none;"></iframe>
 
-  <!-- html2canvas CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <!-- 전송/저장 상태 토스트 -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- html2canvas CDN (jsdelivr 실패 시 unpkg 로 자동 폴백) -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
+    onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"
+  ></script>
 
   <script>
     const FLOORS = 5;
@@ -319,6 +378,68 @@
     const allSelects = [];
     const downloadBtn = document.getElementById("downloadBtn");
     const shareBtn = document.getElementById("shareBtn");
+
+    // ---- 상태 저장/복원 (localStorage) ----
+    const STORAGE_KEY = "svt_mansion_state_v1";
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(collectResults()));
+      } catch (e) { /* 프라이빗 모드 등 저장 불가 시 무시 */ }
+    }
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    // createBuilding 이후, 저장된 배치를 셀렉트에 복원
+    function restoreState(saved) {
+      if (!Array.isArray(saved)) return;
+      const byKey = {};
+      saved.forEach(r => { byKey[`${r.floor}-${r.unit}`] = r.resident; });
+      document.querySelectorAll(".unit").forEach(unit => {
+        const key = `${unit.dataset.floor}-${unit.dataset.unit}`;
+        const val = byKey[key];
+        const sel = unit.querySelector("select.resident-select");
+        if (sel && val) sel.value = val;
+      });
+      allSelects.forEach(sel => sel.dispatchEvent(new Event("change")));
+    }
+
+    function clearAll() {
+      allSelects.forEach(sel => { sel.value = ""; });
+      updateAllSelectOptions();
+      allSelects.forEach(sel => sel.dispatchEvent(new Event("change")));
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      // 미리보기/공유 버튼 숨김
+      document.getElementById("previewContainer").style.display = "none";
+      downloadBtn.style.display = "none";
+      shareBtn.style.display = "none";
+      showToast("전체 배치를 초기화했어요.");
+    }
+
+    // ---- 토스트 ----
+    let toastTimer = null;
+    function showToast(message, type) {
+      const el = document.getElementById("toast");
+      if (!el) return;
+      el.textContent = message;
+      el.className = "toast show" + (type ? " " + type : "");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { el.className = "toast"; }, 2800);
+    }
+
+    // ---- html2canvas 로드 가드 ----
+    function ensureLib() {
+      if (typeof html2canvas === "undefined") {
+        showToast("이미지 기능 로딩에 실패했어요. 네트워크 확인 후 새로고침 해주세요.", "error");
+        return false;
+      }
+      return true;
+    }
 
     // 이미 선택된 (공실 제외) 멤버 목록
     function getSelectedUniqueIds() {
@@ -398,6 +519,7 @@
 
       const select = document.createElement("select");
       select.className = "resident-select";
+      select.setAttribute("aria-label", `${roomNumber}호 입주자 선택`);
 
       const defaultOpt = document.createElement("option");
       defaultOpt.value = "";
@@ -418,6 +540,8 @@
       img.className = "resident-image";
       img.alt = "";
       img.style.display = "none";
+      // 이미지 로드 실패 시 깨진 아이콘 대신 조용히 숨김 (이름표는 유지)
+      img.addEventListener("error", () => { img.style.display = "none"; });
 
       const info = document.createElement("div");
       info.className = "resident-info placeholder";
@@ -431,12 +555,14 @@
       resetBtn.type = "button";
       resetBtn.className = "reset-btn";
       resetBtn.textContent = "초기화";
+      resetBtn.setAttribute("aria-label", `${roomNumber}호 초기화`);
       resetBtn.addEventListener("click", () => {
         select.value = "";
         img.style.display = "none";
         info.textContent = "아직 입주자를 선택하지 않았어요.";
         info.classList.add("placeholder");
         updateAllSelectOptions();
+        saveState();
       });
 
       allSelects.push(select);
@@ -463,6 +589,7 @@
         }
 
         updateAllSelectOptions();
+        saveState();
       });
 
       unit.appendChild(header);
@@ -626,16 +753,21 @@
 
     // 미리보기 영역을 PNG 이미지로 다운로드
     function downloadPreviewAsImage() {
+      if (!ensureLib()) return;
       renderPreviewBlob()
-        .then(blob => downloadBlob(blob, "SVT_Mansion.png"))
+        .then(blob => {
+          downloadBlob(blob, "SVT_Mansion.png");
+          showToast("이미지를 저장했어요! 📷", "success");
+        })
         .catch(err => {
           console.error(err);
-          alert("이미지 저장 중 오류가 발생했습니다. 브라우저를 바꿔보거나 새로고침 후 다시 시도해 주세요.");
+          showToast("이미지 저장 중 오류가 발생했어요. 새로고침 후 다시 시도해 주세요.", "error");
         });
     }
 
     // 원탭 공유 (Web Share API) — 미지원 시 다운로드 + 문구 복사로 폴백
     function sharePreview() {
+      if (!ensureLib()) return;
       renderPreviewBlob()
         .then(blob => {
           const file = new File([blob], "SVT_Mansion.png", { type: "image/png" });
@@ -660,7 +792,7 @@
         })
         .catch(err => {
           console.error(err);
-          alert("공유 준비 중 오류가 발생했습니다. 다시 시도해 주세요.");
+          showToast("공유 준비 중 오류가 발생했어요. 다시 시도해 주세요.", "error");
         });
     }
 
@@ -685,8 +817,9 @@
       slots.forEach((sel, i) => {
         sel.value = i < pool.length ? pool[i] : "";
       });
-      // 아바타/이름 렌더 + 중복 필터 갱신 (기존 change 로직 재사용)
+      // 아바타/이름 렌더 + 중복 필터 갱신 (기존 change 로직 재사용, saveState 포함)
       allSelects.forEach(sel => sel.dispatchEvent(new Event("change")));
+      showToast("무작위로 배치했어요! 🎲");
     }
 
 
@@ -707,13 +840,16 @@
         return;
       }
 
-      // 미리보기 먼저 생성
-      renderPreview(results);
-
-      // 이대로 이사할지 한 번 더 확인
+      // 이사 확정 여부 먼저 확인 → 그 다음 미리보기 생성 (흐름 순서 정리)
       const ok = confirm("이대로 이사할까요?");
       if (!ok) return;
 
+      // 미리보기 생성
+      renderPreview(results);
+      // 미리보기 위치로 부드럽게 스크롤
+      document.getElementById("previewContainer").scrollIntoView({ behavior: "smooth", block: "start" });
+
+      // 시트 전송
       const payload = {
         submittedAt: new Date().toISOString(),
         userAgent: navigator.userAgent || "",
@@ -722,15 +858,38 @@
 
       const form = document.getElementById("gsheetForm");
       const textarea = document.getElementById("payloadField");
-
       textarea.value = JSON.stringify(payload);
+
+      showToast("이사 정보를 저장하는 중… 🚚");
+      sheetSubmitPending = true;
       form.submit();
+
+      // onload 가 안 오는 환경(광고차단/오프라인) 대비 타임아웃 폴백
+      if (sheetTimeoutId) clearTimeout(sheetTimeoutId);
+      sheetTimeoutId = setTimeout(() => {
+        if (sheetSubmitPending) {
+          sheetSubmitPending = false;
+          showToast("미리보기는 생성됐어요. (전송 확인은 안 될 수 있어요)", "success");
+        }
+      }, 6000);
     }
 
+    // 숨겨진 iframe 응답 → 전송 완료 토스트
+    let sheetSubmitPending = false;
+    let sheetTimeoutId = null;
+    document.querySelector('iframe[name="hidden_iframe"]').addEventListener("load", () => {
+      if (!sheetSubmitPending) return; // 최초 로드는 무시
+      sheetSubmitPending = false;
+      if (sheetTimeoutId) clearTimeout(sheetTimeoutId);
+      showToast("이사 완료! 입주 현황이 저장됐어요 🎉", "success");
+    });
+
     createBuilding();
+    restoreState(loadSavedState());
 
     document.getElementById("saveBtn").addEventListener("click", sendToSheetAndPreview);
     document.getElementById("randomBtn").addEventListener("click", randomAssign);
+    document.getElementById("clearBtn").addEventListener("click", clearAll);
     downloadBtn.addEventListener("click", downloadPreviewAsImage);
     shareBtn.addEventListener("click", sharePreview);
   </script>
