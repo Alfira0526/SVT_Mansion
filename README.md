@@ -6,6 +6,10 @@
 
 배치 → 미리보기 → 원탭 공유까지, 트위터에 올리기 좋은 결과 카드를 만들어 줍니다.
 
+### ▶️ [지금 플레이하기](https://alfira0526.github.io/SVT_Mansion/)
+
+`https://alfira0526.github.io/SVT_Mansion/`
+
 <img src="docs/preview.png" alt="SVT Mansion 결과 카드 미리보기" width="480">
 
 </div>
@@ -30,7 +34,9 @@
 
 ## 🚀 실행 방법
 
-별도 빌드나 서버가 필요 없습니다.
+**바로 플레이:** 👉 https://alfira0526.github.io/SVT_Mansion/
+
+로컬에서 열려면 별도 빌드나 서버가 필요 없습니다.
 
 ```bash
 # 저장소를 받은 뒤
