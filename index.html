@@ -331,7 +331,31 @@
     .preview-date {
       font-size: 12px;
       color: var(--text-dim);
+      margin: 0 16px 8px;
+    }
+
+    /* 입주/공실 요약 칩 (기획: 정보 위계 / 디자인: 정보 설계) */
+    .preview-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       margin: 0 16px 12px;
+    }
+
+    .stat-chip {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #e7e8ef;
+      background: rgba(146, 168, 209, 0.14);
+      border: 1px solid var(--pv-border);
+      border-radius: 999px;
+      padding: 3px 10px;
+    }
+
+    .stat-chip.me {
+      color: #1a1a1a;
+      background: linear-gradient(135deg, var(--rose), var(--serenity));
+      border-color: transparent;
     }
 
     .preview-floor {
@@ -369,6 +393,29 @@
       flex-direction: column;
       align-items: center;
       min-height: 130px;
+      position: relative;
+    }
+
+    /* 캐럿(나) 강조 — 팬덤 감정이입 + 개인화 */
+    .preview-unit.is-me {
+      border-color: transparent;
+      background:
+        radial-gradient(90% 60% at 50% 30%, rgba(247, 202, 201, 0.20), transparent 72%),
+        var(--pv-unit);
+      box-shadow: 0 0 0 2px rgba(247, 202, 201, 0.55), 0 6px 16px rgba(146, 168, 209, 0.25);
+    }
+
+    .me-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #1a1a1a;
+      background: linear-gradient(135deg, var(--rose), var(--serenity));
+      border-radius: 999px;
+      padding: 1px 7px;
+      letter-spacing: 0.5px;
     }
 
     .preview-unit-label {
@@ -456,6 +503,16 @@
       font-weight: 700;
     }
 
+    /* 브랜드 워드마크 마감 (기획: 유입 단서 / 디자인: 소장각) */
+    .preview-brand {
+      margin: 6px 16px 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #8f97ab;
+    }
+
     @media (max-width: 700px) {
   /* 위쪽 '입주자 선택' 화면은 모바일에서 1열로 */
   .floor {
@@ -496,10 +553,12 @@
       <div class="preview-rooftop">🏢 SVT APARTMENT <span>💎</span></div>
       <div class="preview-title">우리 아파트 입주 현황</div>
       <div class="preview-date" id="previewDate"></div>
+      <div class="preview-stats" id="previewStats"></div>
       <div id="previewContent"></div>
       <div id="previewEvents" class="preview-events" style="display:none;"></div>
       <div class="preview-entrance">🚪 1F · ENTRANCE</div>
       <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
+      <div class="preview-brand">💎 SVT MANSION</div>
     </div>
   </div>
 
@@ -925,6 +984,18 @@
         }) + " 기준";
       }
 
+      // 입주/공실 요약 지표 (기획: 정보 위계 / 디자인: 정보 설계)
+      const statsEl = document.getElementById("previewStats");
+      if (statsEl) {
+        const occupied = results.filter(r => r.resident && r.resident !== "공실").length;
+        const vacant = 15 - occupied;
+        const meIn = results.some(r => r.resident === "캐럿");
+        statsEl.innerHTML =
+          `<span class="stat-chip">💎 입주 ${occupied}세대</span>`
+          + `<span class="stat-chip">🚪 공실 ${vacant}세대</span>`
+          + `<span class="stat-chip me">${meIn ? "🙋 나도 입주!" : "👀 관전 모드"}</span>`;
+      }
+
       for (let f = FLOORS; f >= 1; f--) {
         const floorBlock = document.createElement("div");
         floorBlock.className = "preview-floor";
@@ -965,6 +1036,15 @@
               const trait = TRAITS[residentMeta.id];
               name.textContent = (trait ? trait.emoji + " " : "") + residentMeta.label;
               unitDiv.appendChild(name);
+
+              // 캐럿(나) 강조 — 개인화 + 감정이입
+              if (residentMeta.id === "캐럿") {
+                unitDiv.classList.add("is-me");
+                const badge = document.createElement("div");
+                badge.className = "me-badge";
+                badge.textContent = "나";
+                unitDiv.appendChild(badge);
+              }
             } else {
               const name = document.createElement("div");
               name.className = "preview-unit-name preview-empty";
