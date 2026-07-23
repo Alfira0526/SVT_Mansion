@@ -513,6 +513,75 @@
       color: #8f97ab;
     }
 
+    /* 닉네임 입력 (시작 단계) */
+    .nick-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .nick-row label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    #nickInput {
+      flex: 1 1 200px;
+      max-width: 320px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    #nickInput:focus {
+      outline: none;
+      border-color: var(--serenity);
+    }
+
+    /* 이미지 비율 토글 */
+    .ratio-toggle {
+      display: inline-flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .ratio-toggle button {
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 12px;
+      transform: none;
+    }
+
+    .ratio-toggle button.active {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+    }
+
+    .ratio-toggle button:hover { transform: none; }
+
+    /* 4:5 공유용 컴팩트 렌더 (캡처 시에만 적용) */
+    .preview-container.compact .preview-unit { min-height: 96px; padding: 10px 8px; }
+    .preview-container.compact .preview-avatar { width: 50px; height: 50px; margin-bottom: 5px; }
+    .preview-container.compact .preview-unit-label { font-size: 11px; margin-bottom: 4px; }
+    .preview-container.compact .preview-divider { margin-bottom: 6px; }
+    .preview-container.compact .preview-unit-name { font-size: 11px; }
+    .preview-container.compact .preview-floor { margin-bottom: 7px; }
+    .preview-container.compact .preview-floor-grid { gap: 9px; }
+    .preview-container.compact .preview-events { padding: 9px 12px; margin-top: 4px; }
+    .preview-container.compact .preview-event-item { font-size: 11px; line-height: 1.55; }
+    .preview-container.compact .preview-title { font-size: 15px; margin-top: 10px; }
+
     @media (max-width: 700px) {
   /* 위쪽 '입주자 선택' 화면은 모바일에서 1열로 */
   .floor {
@@ -536,8 +605,14 @@
       각 집에 멤버들을 한 명씩 배치해 주세요! 같은 멤버는 한 번만 배치할 수 있습니다.<br>
       고민되면 <strong>🎲 랜덤 배치</strong>로 한 번에 채울 수 있어요. (나는 안 넣을 경우 공실을 두 개 두면 됩니다.)<br>
       배치를 마친 뒤 <strong>이사하기</strong>를 누르면 아래에 입주 현황 미리보기가 생성됩니다!<br>
-      <strong>이미지로 저장하기</strong> 또는 <strong>📲 공유하기</strong>로 결과를 남겨보세요. 배치는 자동 저장됩니다.
+      <strong>이미지로 저장하기</strong> 또는 <strong>📲 공유하기</strong>로 결과를 남겨보세요. 배치는 자동 저장됩니다.<br>
+      닉네임을 넣으면 결과 카드가 <strong>"OO이 세븐틴 아파트에 입주했다"</strong>로 바뀌고, <strong>4:5 공유용</strong> 비율로도 저장할 수 있어요.
     </p>
+
+    <div class="nick-row">
+      <label for="nickInput">닉네임</label>
+      <input id="nickInput" type="text" maxlength="12" placeholder="예: 캐럿이 — 결과 카드에 표시돼요" aria-label="닉네임 입력" />
+    </div>
 
     <div id="building" class="building"></div>
 
@@ -545,13 +620,17 @@
       <button id="randomBtn" type="button" aria-label="멤버 무작위 배치">🎲 랜덤 배치</button>
       <button id="saveBtn" type="button">이사하기</button>
       <button id="clearBtn" type="button" class="ghost-btn" aria-label="전체 배치 초기화">전체 초기화</button>
+      <span id="ratioToggle" class="ratio-toggle" style="display:none;" role="group" aria-label="이미지 비율">
+        <button type="button" data-ratio="original" class="active">원본</button>
+        <button type="button" data-ratio="45">4:5 공유용</button>
+      </span>
       <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
       <button id="shareBtn" type="button" style="display:none;">📲 공유하기</button>
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
       <div class="preview-rooftop">🏢 SVT APARTMENT <span>💎</span></div>
-      <div class="preview-title">우리 아파트 입주 현황</div>
+      <div class="preview-title" id="previewTitle">우리 아파트 입주 현황</div>
       <div class="preview-date" id="previewDate"></div>
       <div class="preview-stats" id="previewStats"></div>
       <div id="previewContent"></div>
@@ -608,6 +687,24 @@
     const allSelects = [];
     const downloadBtn = document.getElementById("downloadBtn");
     const shareBtn = document.getElementById("shareBtn");
+    const nickInput = document.getElementById("nickInput");
+    const ratioToggle = document.getElementById("ratioToggle");
+    let shareRatio = "original"; // "original" | "45"
+
+    // 닉네임 저장/복원
+    const NICK_KEY = "svt_nick";
+    try { nickInput.value = localStorage.getItem(NICK_KEY) || ""; } catch (e) {}
+    nickInput.addEventListener("input", () => {
+      try { localStorage.setItem(NICK_KEY, nickInput.value.trim()); } catch (e) {}
+    });
+
+    // 한글 주격 조사(이/가) 판별
+    function subjectParticle(word) {
+      if (!word) return "이";
+      const c = word.charCodeAt(word.length - 1);
+      if (c >= 0xAC00 && c <= 0xD7A3) return ((c - 0xAC00) % 28) !== 0 ? "이" : "가";
+      return "이"; // 한글이 아니면 기본값
+    }
 
     // ---- 상태 저장/복원 (localStorage) ----
     const STORAGE_KEY = "svt_mansion_state_v1";
@@ -648,6 +745,7 @@
       document.getElementById("previewContainer").style.display = "none";
       downloadBtn.style.display = "none";
       shareBtn.style.display = "none";
+      ratioToggle.style.display = "none";
       showToast("전체 배치를 초기화했어요.");
     }
 
@@ -970,11 +1068,21 @@
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
         downloadBtn.style.display = "none";
         shareBtn.style.display = "none";
+        ratioToggle.style.display = "none";
         return;
       }
 
       container.style.display = "block";
       content.innerHTML = "";
+
+      // 닉네임 기반 타이틀 ("OO이 세븐틴 아파트에 입주했다")
+      const titleEl = document.getElementById("previewTitle");
+      if (titleEl) {
+        const nick = (nickInput.value || "").trim();
+        titleEl.textContent = nick
+          ? `${nick}${subjectParticle(nick)} 세븐틴 아파트에 입주했다 🏢`
+          : "우리 아파트 입주 현황";
+      }
 
       // 공유 이미지용 날짜 표기
       const dateEl = document.getElementById("previewDate");
@@ -1080,30 +1188,53 @@
         }
       }
 
-      // 미리보기가 있을 때만 저장/공유 버튼 노출
+      // 미리보기가 있을 때만 저장/공유 버튼 + 비율 토글 노출
       downloadBtn.style.display = "inline-block";
       shareBtn.style.display = "inline-block";
+      ratioToggle.style.display = "inline-flex";
     }
 
     // 공유/저장 공통 문구
     const SHARE_TEXT = "내가 배치한 세븐틴 아파트 🏢💎\n#세븐틴아파트 #SVT_Mansion";
 
+    // 캔버스를 지정 비율(w:h)의 새 캔버스에 크롭 없이 중앙 배치(레터박스). 4:5 공유용.
+    function composeToRatio(src, wRatio, hRatio, bg) {
+      const target = wRatio / hRatio;
+      const sw = src.width, sh = src.height;
+      let cw, ch;
+      if (sw / sh > target) { cw = sw; ch = Math.round(sw / target); }  // 원본이 더 넓음 → 위아래 여백
+      else { ch = sh; cw = Math.round(sh * target); }                    // 원본이 더 김 → 좌우 여백
+      const c = document.createElement("canvas");
+      c.width = cw; c.height = ch;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.drawImage(src, Math.round((cw - sw) / 2), Math.round((ch - sh) / 2));
+      return c;
+    }
+
     // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유가 공유하는 헬퍼)
-    function renderPreviewBlob() {
+    // ratio: "original" | "45"  — 4:5 는 컴팩트 렌더 후 4:5 캔버스에 레터박스 합성
+    function renderPreviewBlob(ratio) {
       const container = document.getElementById("previewContainer");
       if (!container) return Promise.reject(new Error("previewContainer 없음"));
+
+      const compact = ratio === "45";
+      if (compact) container.classList.add("compact");
 
       return html2canvas(container, {
         backgroundColor: null,
         scale: 2, // 해상도 업
         windowWidth: container.scrollWidth,
         windowHeight: container.scrollHeight
-      }).then(canvas => new Promise((resolve, reject) => {
-        // dataURL 대신 Blob 사용 (모바일에서 파일명/공유 적용 잘 되도록)
-        canvas.toBlob(blob => {
-          blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
-        }, "image/png");
-      }));
+      })
+        .then(canvas => compact ? composeToRatio(canvas, 4, 5, "#22232b") : canvas)
+        .then(canvas => new Promise((resolve, reject) => {
+          canvas.toBlob(blob => {
+            blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
+          }, "image/png");
+        }))
+        .finally(() => container.classList.remove("compact"));
     }
 
     // Blob 을 파일로 다운로드
@@ -1121,9 +1252,10 @@
     // 미리보기 영역을 PNG 이미지로 다운로드
     function downloadPreviewAsImage() {
       if (!ensureLib()) return;
-      renderPreviewBlob()
+      const fname = shareRatio === "45" ? "SVT_Mansion_4x5.png" : "SVT_Mansion.png";
+      renderPreviewBlob(shareRatio)
         .then(blob => {
-          downloadBlob(blob, "SVT_Mansion.png");
+          downloadBlob(blob, fname);
           showToast("이미지를 저장했어요! 📷", "success");
         })
         .catch(err => {
@@ -1135,9 +1267,10 @@
     // 원탭 공유 (Web Share API) — 미지원 시 다운로드 + 문구 복사로 폴백
     function sharePreview() {
       if (!ensureLib()) return;
-      renderPreviewBlob()
+      const fname = shareRatio === "45" ? "SVT_Mansion_4x5.png" : "SVT_Mansion.png";
+      renderPreviewBlob(shareRatio)
         .then(blob => {
-          const file = new File([blob], "SVT_Mansion.png", { type: "image/png" });
+          const file = new File([blob], fname, { type: "image/png" });
 
           if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
             return navigator.share({ files: [file], text: SHARE_TEXT }).catch(err => {
@@ -1148,7 +1281,7 @@
           }
 
           // 폴백: 이미지 저장 + 공유 문구 클립보드 복사
-          downloadBlob(blob, "SVT_Mansion.png");
+          downloadBlob(blob, fname);
           const copyText = SHARE_TEXT + "\n" + location.href;
           if (navigator.clipboard && navigator.clipboard.writeText) {
             return navigator.clipboard.writeText(copyText)
@@ -1273,6 +1406,14 @@
     document.getElementById("clearBtn").addEventListener("click", clearAll);
     downloadBtn.addEventListener("click", downloadPreviewAsImage);
     shareBtn.addEventListener("click", sharePreview);
+
+    // 이미지 비율 토글 (원본 / 4:5 공유용)
+    ratioToggle.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        shareRatio = btn.dataset.ratio;
+        ratioToggle.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+      });
+    });
   </script>
 </body>
 </html>
