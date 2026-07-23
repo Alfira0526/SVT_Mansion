@@ -407,6 +407,28 @@
       color: var(--text-dim);
     }
 
+    /* 이웃 이벤트 섹션 */
+    .preview-events {
+      margin: 6px 16px 0;
+      padding: 12px 14px;
+      background: rgba(146, 168, 209, 0.08);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+    }
+
+    .preview-events-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #d6d7e2;
+      margin-bottom: 8px;
+    }
+
+    .preview-event-item {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.75;
+    }
+
     /* 1층 출입구 */
     .preview-entrance {
       margin: 4px 16px 0;
@@ -475,6 +497,7 @@
       <div class="preview-title">우리 아파트 입주 현황</div>
       <div class="preview-date" id="previewDate"></div>
       <div id="previewContent"></div>
+      <div id="previewEvents" class="preview-events" style="display:none;"></div>
       <div class="preview-entrance">🚪 1F · ENTRANCE</div>
       <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
     </div>
@@ -790,6 +813,94 @@
     }
 
     // 미리보기 생성
+    // ─────────────────────────────────────────────────────────
+    // 멤버 성격 & 위치 기반 이웃 이벤트 (밝고 긍정적인 공개 이미지 기반, 자유 수정 가능)
+    // ─────────────────────────────────────────────────────────
+    const TRAITS = {
+      "에스쿱스": { emoji: "🦁", tag: "든든한 리더" },
+      "정한":     { emoji: "😇", tag: "천사표 장난꾸러기" },
+      "조슈아":   { emoji: "🎸", tag: "젠틀 매너남" },
+      "준":       { emoji: "🍜", tag: "요리하는 4차원" },
+      "호시":     { emoji: "🐯", tag: "텐션 폭발 안무장인" },
+      "원우":     { emoji: "📚", tag: "조용한 독서가" },
+      "우지":     { emoji: "🎧", tag: "밤샘 작곡가" },
+      "디에잇":   { emoji: "🎨", tag: "감성 예술가" },
+      "민규":     { emoji: "🍳", tag: "살림꾼 비주얼" },
+      "도겸":     { emoji: "🌞", tag: "비타민 미소" },
+      "승관":     { emoji: "🎤", tag: "복도의 예능인" },
+      "버논":     { emoji: "🕶️", tag: "자유로운 힙합러" },
+      "디노":     { emoji: "🕺", tag: "열정 막내" },
+      "캐럿":     { emoji: "💎", tag: "우리 이웃 캐럿" }
+    };
+
+    // 이웃 케미 (두 멤버가 인접 시 발동, 순서 무관)
+    const PAIR_EVENTS = [
+      { m: ["호시", "도겸"],   text: "부석순 라인 조짐! 이 층은 조용할 틈이 없겠어요 🔊" },
+      { m: ["호시", "승관"],   text: "호시·승관 옆집, 복도가 곧 무대가 됩니다 🎤" },
+      { m: ["도겸", "승관"],   text: "도겸·승관 듀엣, 벽 너머로 라이브가 들려와요 🎶" },
+      { m: ["민규", "우지"],   text: "밤샘하는 우지에게 민규가 야식 배달 🍳🎧" },
+      { m: ["원우", "버논"],   text: "원우·버논, 밤새 게임과 음악 소리가 새어나와요 🎮" },
+      { m: ["정한", "조슈아"], text: "정한·조슈아, 옆집끼리 알콩달콩 장난 😇🎸" },
+      { m: ["준", "디에잇"],   text: "준·디에잇, 예술과 요리의 살롱이 열립니다 🍜🎨" },
+      { m: ["에스쿱스", "디노"], text: "리더와 막내가 이웃! 든든한 사제 라인 🦁🕺" },
+      { m: ["민규", "도겸"],   text: "민규 집밥 + 도겸 미소 = 이 층 분위기 담당 🌞" }
+    ];
+
+    // 이웃이 하나라도 있으면 발동 (개인 특성)
+    const SOLO_EVENTS = {
+      "우지": "옆집에서 밤새 비트가… 우지 작업실 가동 중 🎧",
+      "민규": "이웃집에 민규표 집밥 냄새가 솔솔 🍳",
+      "승관": "승관 사는 라인은 매일이 예능 현장 🎤",
+      "호시": "새벽마다 안무 연습 소리, 호시가 옆집이군요 🐯",
+      "정한": "정한의 장난 초인종에 오늘도 옆집이 당했다 😇"
+    };
+
+    // 그룹 전원 배치 시 발동 (위치 무관)
+    const GROUP_EVENTS = [
+      { m: ["호시", "도겸", "승관"], text: "✨ 부석순(BSS) 전원 입주! 예능 시청률 보장" },
+      { m: ["에스쿱스", "원우", "민규", "버논"], text: "🎧 힙합팀 집결! 지하 스튜디오 풀가동" },
+      { m: ["정한", "조슈아", "우지", "도겸", "승관"], text: "🎵 보컬팀 총출동! 아파트 합창단 결성" },
+      { m: ["준", "호시", "디에잇", "디노"], text: "🕺 퍼포먼스팀 집합! 옥상이 연습실이 됩니다" }
+    ];
+
+    // 배치 결과 → 위치 기반 이벤트 목록 (우선순위: 그룹 > 이웃 케미 > 개인, 최대 5개)
+    function generateEvents(results) {
+      const placed = new Set(
+        results.filter(r => r.resident && r.resident !== "공실").map(r => r.resident)
+      );
+      const map = {};
+      results.forEach(r => {
+        if (r.resident && r.resident !== "공실") map[r.floor + "-" + r.unit] = r.resident;
+      });
+
+      // 인접 쌍 수집: 같은 층 좌우 + 같은 라인 위아래
+      const adjPairs = new Set();
+      const hasNeighbor = new Set();
+      const connect = (a, b) => {
+        if (!a || !b) return;
+        hasNeighbor.add(a); hasNeighbor.add(b);
+        adjPairs.add([a, b].sort().join("|"));
+      };
+      for (let f = 1; f <= FLOORS; f++) {
+        for (let u = 1; u <= 3; u++) {
+          const cur = map[f + "-" + u];
+          if (!cur) continue;
+          if (u < 3) connect(cur, map[f + "-" + (u + 1)]);
+          if (f < FLOORS) connect(cur, map[(f + 1) + "-" + u]);
+        }
+      }
+
+      const events = [];
+      const seen = new Set();
+      const push = (t) => { if (t && !seen.has(t)) { seen.add(t); events.push(t); } };
+
+      GROUP_EVENTS.forEach(g => { if (g.m.every(x => placed.has(x))) push(g.text); });
+      PAIR_EVENTS.forEach(p => { if (adjPairs.has([...p.m].sort().join("|"))) push(p.text); });
+      Object.keys(SOLO_EVENTS).forEach(m => { if (hasNeighbor.has(m)) push(SOLO_EVENTS[m]); });
+
+      return events.slice(0, 5);
+    }
+
     function renderPreview(results) {
       const container = document.getElementById("previewContainer");
       const content = document.getElementById("previewContent");
@@ -851,7 +962,8 @@
 
               const name = document.createElement("div");
               name.className = "preview-unit-name";
-              name.textContent = residentMeta.label;
+              const trait = TRAITS[residentMeta.id];
+              name.textContent = (trait ? trait.emoji + " " : "") + residentMeta.label;
               unitDiv.appendChild(name);
             } else {
               const name = document.createElement("div");
@@ -872,6 +984,20 @@
         floorBlock.appendChild(floorLabel);
         floorBlock.appendChild(grid);
         content.appendChild(floorBlock);
+      }
+
+      // 위치 기반 이웃 이벤트 렌더
+      const evEl = document.getElementById("previewEvents");
+      if (evEl) {
+        const evs = generateEvents(results);
+        if (evs.length) {
+          evEl.style.display = "block";
+          evEl.innerHTML = '<div class="preview-events-title">🎬 우리 아파트 이야기</div>'
+            + evs.map(t => `<div class="preview-event-item">· ${t}</div>`).join("");
+        } else {
+          evEl.style.display = "none";
+          evEl.innerHTML = "";
+        }
       }
 
       // 미리보기가 있을 때만 저장/공유 버튼 노출
