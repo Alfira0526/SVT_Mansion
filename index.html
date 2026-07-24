@@ -1354,10 +1354,13 @@
         const ms = c.members || [];
         if (ms.length && ms.every(x => placed.has(x))) add(c.text, c.desc, c.legendary ? 0 : 1, "combo", ms, c.legendary);
       });
-      // 고세 예능 (인원 임계 이상)
+      // 고세 예능 (인원 임계 이상) — 실입주 멤버 몇 명을 '출연진'으로 실어 사진 모핑
       if (placed.size >= goseMin && gose.length) {
         const g = seededShuffle(gose, rng)[0];
-        add(g.text, g.desc, 2, "gose", [], false);
+        const cast = seededShuffle(
+          Array.from(placed).filter(m => m !== "캐럿"), rng
+        ).slice(0, 3);
+        add(g.text, g.desc, 2, "gose", cast, false);
       }
       // 공실 게스트 (친한 인물) — 조건 멤버 배치 + 공실이 하나라도 있으면
       const vacantCount = 15 - Object.keys(map).length;
@@ -1390,12 +1393,20 @@
         }
         if (hit) add(d.text, d.desc, 3, "directional", d.type === "horizontal" ? [d.left, d.right] : [d.upper, d.lower], false);
       });
-      // 위치 (floors: 한 칸이라도 / floorsAll: 그 층 만실)
+      // 위치 (floors: 한 칸이라도 / floorsAll: 그 층 만실) — 해당 층 실입주자를 실어 사진 모핑
       position.forEach(p => {
         let ok = false;
+        const zone = p.floorsAll || p.floors || [];
         if (p.floorsAll) ok = p.floorsAll.every(f => [1, 2, 3].every(u => map[f + "-" + u]));
         else if (p.floors) ok = p.floors.some(f => [1, 2, 3].some(u => map[f + "-" + u]));
-        if (ok) add(p.text, p.desc, 4, "position", [], false);
+        if (ok) {
+          const cast = [];
+          zone.forEach(f => [1, 2, 3].forEach(u => {
+            const m = map[f + "-" + u];
+            if (m && m !== "캐럿") cast.push(m);
+          }));
+          add(p.text, p.desc, 4, "position", seededShuffle(cast, rng).slice(0, 3), false);
+        }
       });
       // 개인 (이웃 있으면) — 멤버별 변형 중 시드로 하나
       Object.keys(solo).forEach(m => {
@@ -1405,7 +1416,7 @@
         }
       });
 
-      // 티어 우선순위 + 시드 셔플(동점) + 카테고리별 상한
+      // 선택: 티어 우선순위 + 시드 셔플(동점) + 카테고리별 상한 (어떤 5개를 뽑을지)
       const used = {};
       const chosen = seededShuffle(pool, rng)
         .sort((a, b) => a.tier - b.tier)
@@ -1415,6 +1426,12 @@
           return used[e.cat] <= (caps[e.cat] || 1);
         })
         .slice(0, maxEvents);
+
+      // 표시 순서: 얼굴 적은 것 먼저 → 얼굴 많은 조합 이벤트가 피날레(빌드업).
+      // 동점이면 티어 낮은(=더 특별한) 이벤트를 뒤로 보내 클라이맥스로.
+      chosen.sort((a, b) =>
+        ((a.members || []).length - (b.members || []).length) || (b.tier - a.tier)
+      );
 
       return chosen.map(e => ({ text: e.text, desc: e.desc, members: e.members || [], legendary: e.legendary }));
     }
