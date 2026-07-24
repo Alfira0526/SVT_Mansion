@@ -21,6 +21,16 @@
 | `directional` | **방향까지** 따짐 | 아래 참고 |
 | `position` | **층 위치** | `floors: [층..]`(한 칸이라도 차면) 또는 `floorsAll: [층]`(그 층 만실), `text`, `desc` |
 | `solo` | 멤버 옆에 이웃이 하나라도 있으면 | `{ "멤버명": [ {text, desc}, ... ] }` — 변형 여러 개 두면 배치마다 하나가 뽑힘 |
+| `guests` | 지정 멤버 배치 + **공실이 하나라도 있으면** (친한 인물 카메오) | `when: [멤버..]`, `text`, `desc` |
+| `motions` | 특정 배치에서 **두 멤버 사진이 부딪히는 팝업 연출** 후 메시지 | 아래 참고 |
+
+### 모션(`motions`) 규칙
+결과 생성 순간, 화면에 두 멤버 사진이 좌우에서 날아와 충돌하는 팝업을 띄웁니다.
+- `{ type:"collision", when:{ around:"캐럿", pair:["도겸","승관"] }, imgs:["도겸","승관"], title:"제목", sub:"부제" }`
+  - `around` 멤버의 **좌우 옆집**이 `pair` 두 명(순서 무관)일 때 발동.
+- `{ type:"collision", when:{ adjacent:["호시","우지"] }, imgs:["호시","우지"], title, sub }`
+  - 두 멤버가 **옆집/위아래로 인접**하면 발동.
+  - `imgs`는 팝업에 띄울 두 멤버(이미지가 있는 멤버 id).
 
 ### 방향성(`directional`) 규칙
 - 가로: `{ type: "horizontal", left: "왼쪽멤버", right: "오른쪽멤버", text, desc }`
