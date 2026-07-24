@@ -331,7 +331,31 @@
     .preview-date {
       font-size: 12px;
       color: var(--text-dim);
+      margin: 0 16px 8px;
+    }
+
+    /* 입주/공실 요약 칩 (기획: 정보 위계 / 디자인: 정보 설계) */
+    .preview-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       margin: 0 16px 12px;
+    }
+
+    .stat-chip {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #e7e8ef;
+      background: rgba(146, 168, 209, 0.14);
+      border: 1px solid var(--pv-border);
+      border-radius: 999px;
+      padding: 3px 10px;
+    }
+
+    .stat-chip.me {
+      color: #1a1a1a;
+      background: linear-gradient(135deg, var(--rose), var(--serenity));
+      border-color: transparent;
     }
 
     .preview-floor {
@@ -369,6 +393,29 @@
       flex-direction: column;
       align-items: center;
       min-height: 130px;
+      position: relative;
+    }
+
+    /* 캐럿(나) 강조 — 팬덤 감정이입 + 개인화 */
+    .preview-unit.is-me {
+      border-color: transparent;
+      background:
+        radial-gradient(90% 60% at 50% 30%, rgba(247, 202, 201, 0.20), transparent 72%),
+        var(--pv-unit);
+      box-shadow: 0 0 0 2px rgba(247, 202, 201, 0.55), 0 6px 16px rgba(146, 168, 209, 0.25);
+    }
+
+    .me-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      color: #1a1a1a;
+      background: linear-gradient(135deg, var(--rose), var(--serenity));
+      border-radius: 999px;
+      padding: 1px 7px;
+      letter-spacing: 0.5px;
     }
 
     .preview-unit-label {
@@ -407,6 +454,46 @@
       color: var(--text-dim);
     }
 
+    /* 이웃 이벤트 섹션 */
+    .preview-events {
+      margin: 6px 16px 0;
+      padding: 12px 14px;
+      background: rgba(146, 168, 209, 0.08);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+    }
+
+    .preview-events-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #d6d7e2;
+      margin-bottom: 8px;
+    }
+
+    .preview-event-item {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 7px;
+    }
+
+    .preview-event-item .ev-line { font-weight: 600; }
+
+    /* 이벤트별 상황/대사 (소설·예능작가 페르소나 반영) */
+    .preview-event-item .ev-desc {
+      font-size: 11px;
+      color: #8f97ab;
+      margin: 1px 0 0 12px;
+      line-height: 1.5;
+    }
+
+    /* 레전드 이벤트 강조 (팬덤 '플렉스' 라인) */
+    .preview-event-item.legend .ev-line {
+      color: #ffd79a;
+      font-weight: 700;
+    }
+    .preview-event-item.legend .ev-desc { color: #d9b98a; }
+
     /* 1층 출입구 */
     .preview-entrance {
       margin: 4px 16px 0;
@@ -428,13 +515,91 @@
       text-align: center;
       font-size: 12px;
       letter-spacing: 0.3px;
-      background: var(--accent-grad);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      -webkit-text-fill-color: transparent;
+      /* 솔리드 컬러 사용: html2canvas 는 background-clip:text(그라디언트 글자)를
+         렌더하지 못해 저장 이미지에서 글자가 사라지므로 브랜드 라일락 솔리드로 표기 */
+      color: #cdb7e0;
       font-weight: 700;
     }
+
+    /* 브랜드 워드마크 마감 (기획: 유입 단서 / 디자인: 소장각) */
+    .preview-brand {
+      margin: 6px 16px 4px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #8f97ab;
+    }
+
+    /* 닉네임 입력 (시작 단계) */
+    .nick-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .nick-row label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    #nickInput {
+      flex: 1 1 200px;
+      max-width: 320px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    #nickInput:focus {
+      outline: none;
+      border-color: var(--serenity);
+    }
+
+    /* 이미지 비율 토글 */
+    .ratio-toggle {
+      display: inline-flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .ratio-toggle button {
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 12px;
+      transform: none;
+    }
+
+    .ratio-toggle button.active {
+      background: var(--accent-grad);
+      color: #1a1a1a;
+    }
+
+    .ratio-toggle button:hover { transform: none; }
+
+    /* 4:5 공유용 컴팩트 렌더 (캡처 시에만 적용) */
+    .preview-container.compact .preview-unit { min-height: 96px; padding: 10px 8px; }
+    .preview-container.compact .preview-avatar { width: 50px; height: 50px; margin-bottom: 5px; }
+    .preview-container.compact .preview-unit-label { font-size: 11px; margin-bottom: 4px; }
+    .preview-container.compact .preview-divider { margin-bottom: 6px; }
+    .preview-container.compact .preview-unit-name { font-size: 11px; }
+    .preview-container.compact .preview-floor { margin-bottom: 7px; }
+    .preview-container.compact .preview-floor-grid { gap: 9px; }
+    .preview-container.compact .preview-events { padding: 9px 12px; margin-top: 4px; }
+    .preview-container.compact .preview-event-item { font-size: 11px; line-height: 1.5; margin-bottom: 5px; }
+    .preview-container.compact .preview-event-item .ev-desc { font-size: 9.5px; }
+    .preview-container.compact .preview-title { font-size: 15px; margin-top: 10px; }
 
     @media (max-width: 700px) {
   /* 위쪽 '입주자 선택' 화면은 모바일에서 1열로 */
@@ -459,8 +624,14 @@
       각 집에 멤버들을 한 명씩 배치해 주세요! 같은 멤버는 한 번만 배치할 수 있습니다.<br>
       고민되면 <strong>🎲 랜덤 배치</strong>로 한 번에 채울 수 있어요. (나는 안 넣을 경우 공실을 두 개 두면 됩니다.)<br>
       배치를 마친 뒤 <strong>이사하기</strong>를 누르면 아래에 입주 현황 미리보기가 생성됩니다!<br>
-      <strong>이미지로 저장하기</strong> 또는 <strong>📲 공유하기</strong>로 결과를 남겨보세요. 배치는 자동 저장됩니다.
+      <strong>이미지로 저장</strong>하거나 <strong>🐦 트위터 · 💬 카카오톡 · 📸 인스타 스토리</strong>로 공유해 보세요 (해시태그·이벤트 문구 자동 포함). 배치는 자동 저장됩니다.<br>
+      닉네임을 넣으면 결과 카드가 <strong>"OO이 세븐틴 아파트에 입주했다"</strong>로 바뀌고, <strong>4:5</strong> 비율로도 저장할 수 있어요.
     </p>
+
+    <div class="nick-row">
+      <label for="nickInput">닉네임</label>
+      <input id="nickInput" type="text" maxlength="12" placeholder="예: 캐럿이 — 결과 카드에 표시돼요" aria-label="닉네임 입력" />
+    </div>
 
     <div id="building" class="building"></div>
 
@@ -468,17 +639,26 @@
       <button id="randomBtn" type="button" aria-label="멤버 무작위 배치">🎲 랜덤 배치</button>
       <button id="saveBtn" type="button">이사하기</button>
       <button id="clearBtn" type="button" class="ghost-btn" aria-label="전체 배치 초기화">전체 초기화</button>
+      <span id="ratioToggle" class="ratio-toggle" style="display:none;" role="group" aria-label="이미지 비율">
+        <button type="button" data-ratio="original" class="active">원본</button>
+        <button type="button" data-ratio="45">4:5 공유용</button>
+      </span>
       <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
-      <button id="shareBtn" type="button" style="display:none;">📲 공유하기</button>
+      <button class="share-btn" type="button" data-platform="twitter" style="display:none;">🐦 트위터</button>
+      <button class="share-btn" type="button" data-platform="kakao" style="display:none;">💬 카카오톡</button>
+      <button class="share-btn" type="button" data-platform="instagram" style="display:none;">📸 인스타 스토리</button>
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
       <div class="preview-rooftop">🏢 SVT APARTMENT <span>💎</span></div>
-      <div class="preview-title">우리 아파트 입주 현황</div>
+      <div class="preview-title" id="previewTitle">우리 아파트 입주 현황</div>
       <div class="preview-date" id="previewDate"></div>
+      <div class="preview-stats" id="previewStats"></div>
       <div id="previewContent"></div>
+      <div id="previewEvents" class="preview-events" style="display:none;"></div>
       <div class="preview-entrance">🚪 1F · ENTRANCE</div>
       <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
+      <div class="preview-brand">💎 SVT MANSION</div>
     </div>
   </div>
 
@@ -497,19 +677,14 @@
   <!-- 전송/저장 상태 토스트 -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- html2canvas CDN (jsdelivr 실패 시 unpkg 로 자동 폴백) -->
-  <!--
-    [벤더링(로컬 우선) 전환 방법 — vendor/README.md 참고]
-    vendor/html2canvas.min.js 파일을 리포에 넣은 뒤, 아래 CDN 스크립트를
-    다음 한 줄로 교체하면 로컬 우선 + CDN 폴백이 됩니다:
-
-    <script src="vendor/html2canvas.min.js"
-      onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"></script>
-  -->
+  <!-- html2canvas: 로컬 벤더 우선 → 실패 시 jsdelivr → unpkg CDN 폴백 (vendor/README.md 참고) -->
   <script
-    src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"
-    onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(s);"
+    src="vendor/html2canvas.min.js"
+    onerror="this.onerror=null;var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';s.onerror=function(){var u=document.createElement('script');u.src='https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js';document.head.appendChild(u);};document.head.appendChild(s);"
   ></script>
+
+  <!-- 이벤트/케미 데이터 (관리자 편집: data/events.js · 가이드 data/README.md) -->
+  <script src="data/events.js"></script>
 
   <script>
     const FLOORS = 5;
@@ -535,7 +710,25 @@
     const buildingEl = document.getElementById("building");
     const allSelects = [];
     const downloadBtn = document.getElementById("downloadBtn");
-    const shareBtn = document.getElementById("shareBtn");
+    const shareBtns = Array.from(document.querySelectorAll(".share-btn"));
+    const nickInput = document.getElementById("nickInput");
+    const ratioToggle = document.getElementById("ratioToggle");
+    let shareRatio = "original"; // "original" | "45"
+
+    // 닉네임 저장/복원
+    const NICK_KEY = "svt_nick";
+    try { nickInput.value = localStorage.getItem(NICK_KEY) || ""; } catch (e) {}
+    nickInput.addEventListener("input", () => {
+      try { localStorage.setItem(NICK_KEY, nickInput.value.trim()); } catch (e) {}
+    });
+
+    // 한글 주격 조사(이/가) 판별
+    function subjectParticle(word) {
+      if (!word) return "이";
+      const c = word.charCodeAt(word.length - 1);
+      if (c >= 0xAC00 && c <= 0xD7A3) return ((c - 0xAC00) % 28) !== 0 ? "이" : "가";
+      return "이"; // 한글이 아니면 기본값
+    }
 
     // ---- 상태 저장/복원 (localStorage) ----
     const STORAGE_KEY = "svt_mansion_state_v1";
@@ -575,7 +768,8 @@
       // 미리보기/공유 버튼 숨김
       document.getElementById("previewContainer").style.display = "none";
       downloadBtn.style.display = "none";
-      shareBtn.style.display = "none";
+      shareBtns.forEach(b => b.style.display = "none");
+      ratioToggle.style.display = "none";
       showToast("전체 배치를 초기화했어요.");
     }
 
@@ -800,6 +994,150 @@
     }
 
     // 미리보기 생성
+    // ─────────────────────────────────────────────────────────
+    // 이벤트/케미/성향 데이터는 외부 파일 data/events.js 에서 로드 (관리자 편집 가능)
+    //   window.SVT_EVENT_DATA 미로드 시에도 게임은 동작하되 이벤트 섹션만 생략된다.
+    // ─────────────────────────────────────────────────────────
+    const EVENT_DATA = window.SVT_EVENT_DATA || {};
+    const EV_CONFIG = EVENT_DATA.config || {};
+    const TRAITS = EVENT_DATA.traits || {};
+
+    // 배치 → 시드(결정적). 같은 배치 = 같은 이야기, 다른 배치 = 다른 이야기.
+    function seedFromResults(results) {
+      let h = 2166136261;
+      results.forEach(r => {
+        const s = r.floor + "-" + r.unit + ":" + (r.resident || "");
+        for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+      });
+      return h >>> 0;
+    }
+    function mulberry32(a) {
+      return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function seededShuffle(arr, rng) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // 배치 결과 → 이벤트 목록. 반환: [{ text, desc, legendary }] (최대 config.maxEvents).
+    //   티어: 레전드 > 조합 > 고세 > 옆집케미 > 방향성케미 > 위치 > 개인. 카테고리별 상한으로 다양성.
+    //   모든 규칙 데이터는 data/events.js(EVENT_DATA). left=왼쪽/작은 호수, right=큰 호수, upper=위층.
+    function generateEvents(results) {
+      const combos = EVENT_DATA.combos || [];
+      const pairs = EVENT_DATA.pairs || [];
+      const directional = EVENT_DATA.directional || [];
+      const solo = EVENT_DATA.solo || {};
+      const position = EVENT_DATA.position || [];
+      const gose = EVENT_DATA.gose || [];
+      const caps = EV_CONFIG.caps || { combo: 3, gose: 1, pair: 2, directional: 2, position: 1, solo: 2 };
+      const maxEvents = EV_CONFIG.maxEvents || 5;
+      const goseMin = EV_CONFIG.goseMinPlaced || 6;
+
+      const placed = new Set(
+        results.filter(r => r.resident && r.resident !== "공실").map(r => r.resident)
+      );
+      const map = {};
+      results.forEach(r => {
+        if (r.resident && r.resident !== "공실") map[r.floor + "-" + r.unit] = r.resident;
+      });
+
+      // 인접(무방향) 쌍 + 이웃 보유 여부
+      const adjPairs = new Set();
+      const hasNeighbor = new Set();
+      const connect = (a, b) => {
+        if (!a || !b) return;
+        hasNeighbor.add(a); hasNeighbor.add(b);
+        adjPairs.add([a, b].sort().join("|"));
+      };
+      for (let f = 1; f <= FLOORS; f++) {
+        for (let u = 1; u <= 3; u++) {
+          const cur = map[f + "-" + u];
+          if (!cur) continue;
+          if (u < 3) connect(cur, map[f + "-" + (u + 1)]);
+          if (f < FLOORS) connect(cur, map[(f + 1) + "-" + u]);
+        }
+      }
+
+      const rng = mulberry32(seedFromResults(results));
+      const pool = []; // { text, desc, tier, cat, legendary }
+      const seenText = new Set();
+      const add = (text, desc, tier, cat, legendary) => {
+        if (!text || seenText.has(text)) return;
+        seenText.add(text);
+        pool.push({ text, desc: desc || "", tier, cat, legendary: !!legendary });
+      };
+
+      // 조합 (지정 멤버 전원 배치, 2~13인)
+      combos.forEach(c => {
+        const ms = c.members || [];
+        if (ms.length && ms.every(x => placed.has(x))) add(c.text, c.desc, c.legendary ? 0 : 1, "combo", c.legendary);
+      });
+      // 고세 예능 (인원 임계 이상)
+      if (placed.size >= goseMin && gose.length) {
+        const g = seededShuffle(gose, rng)[0];
+        add(g.text, g.desc, 2, "gose", false);
+      }
+      // 옆집 케미 (무방향 인접)
+      pairs.forEach(p => {
+        const ms = p.members || [];
+        if (ms.length === 2 && adjPairs.has([...ms].sort().join("|"))) add(p.text, p.desc, 3, "pair", false);
+      });
+      // 방향성 케미 (horizontal: left↔right 같은 층 / vertical: upper↔lower 같은 라인)
+      directional.forEach(d => {
+        let hit = false;
+        if (d.type === "horizontal") {
+          for (let f = 1; f <= FLOORS && !hit; f++) {
+            for (let u = 1; u < 3; u++) {
+              if (map[f + "-" + u] === d.left && map[f + "-" + (u + 1)] === d.right) { hit = true; break; }
+            }
+          }
+        } else if (d.type === "vertical") {
+          for (let f = 1; f < FLOORS && !hit; f++) {
+            for (let u = 1; u <= 3; u++) {
+              if (map[(f + 1) + "-" + u] === d.upper && map[f + "-" + u] === d.lower) { hit = true; break; }
+            }
+          }
+        }
+        if (hit) add(d.text, d.desc, 3, "directional", false);
+      });
+      // 위치 (floors: 한 칸이라도 / floorsAll: 그 층 만실)
+      position.forEach(p => {
+        let ok = false;
+        if (p.floorsAll) ok = p.floorsAll.every(f => [1, 2, 3].every(u => map[f + "-" + u]));
+        else if (p.floors) ok = p.floors.some(f => [1, 2, 3].some(u => map[f + "-" + u]));
+        if (ok) add(p.text, p.desc, 4, "position", false);
+      });
+      // 개인 (이웃 있으면) — 멤버별 변형 중 시드로 하나
+      Object.keys(solo).forEach(m => {
+        if (hasNeighbor.has(m) && Array.isArray(solo[m]) && solo[m].length) {
+          const s = seededShuffle(solo[m], rng)[0];
+          add(s.text, s.desc, 5, "solo", false);
+        }
+      });
+
+      // 티어 우선순위 + 시드 셔플(동점) + 카테고리별 상한
+      const used = {};
+      const chosen = seededShuffle(pool, rng)
+        .sort((a, b) => a.tier - b.tier)
+        .filter(e => {
+          if (e.legendary) return true; // 레전드는 상한 무시
+          used[e.cat] = (used[e.cat] || 0) + 1;
+          return used[e.cat] <= (caps[e.cat] || 1);
+        })
+        .slice(0, maxEvents);
+
+      return chosen.map(e => ({ text: e.text, desc: e.desc, legendary: e.legendary }));
+    }
+
     function renderPreview(results) {
       const container = document.getElementById("previewContainer");
       const content = document.getElementById("previewContent");
@@ -809,12 +1147,22 @@
         container.style.display = "block";
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
         downloadBtn.style.display = "none";
-        shareBtn.style.display = "none";
+        shareBtns.forEach(b => b.style.display = "none");
+        ratioToggle.style.display = "none";
         return;
       }
 
       container.style.display = "block";
       content.innerHTML = "";
+
+      // 닉네임 기반 타이틀 ("OO이 세븐틴 아파트에 입주했다")
+      const titleEl = document.getElementById("previewTitle");
+      if (titleEl) {
+        const nick = (nickInput.value || "").trim();
+        titleEl.textContent = nick
+          ? `${nick}${subjectParticle(nick)} 세븐틴 아파트에 입주했다 🏢`
+          : "우리 아파트 입주 현황";
+      }
 
       // 공유 이미지용 날짜 표기
       const dateEl = document.getElementById("previewDate");
@@ -822,6 +1170,18 @@
         dateEl.textContent = new Date().toLocaleDateString("ko-KR", {
           year: "numeric", month: "long", day: "numeric"
         }) + " 기준";
+      }
+
+      // 입주/공실 요약 지표 (기획: 정보 위계 / 디자인: 정보 설계)
+      const statsEl = document.getElementById("previewStats");
+      if (statsEl) {
+        const occupied = results.filter(r => r.resident && r.resident !== "공실").length;
+        const vacant = 15 - occupied;
+        const meIn = results.some(r => r.resident === "캐럿");
+        statsEl.innerHTML =
+          `<span class="stat-chip">💎 입주 ${occupied}세대</span>`
+          + `<span class="stat-chip">🚪 공실 ${vacant}세대</span>`
+          + `<span class="stat-chip me">${meIn ? "🙋 나도 입주!" : "👀 관전 모드"}</span>`;
       }
 
       for (let f = FLOORS; f >= 1; f--) {
@@ -861,8 +1221,18 @@
 
               const name = document.createElement("div");
               name.className = "preview-unit-name";
-              name.textContent = residentMeta.label;
+              const trait = TRAITS[residentMeta.id];
+              name.textContent = (trait ? trait.emoji + " " : "") + residentMeta.label;
               unitDiv.appendChild(name);
+
+              // 캐럿(나) 강조 — 개인화 + 감정이입
+              if (residentMeta.id === "캐럿") {
+                unitDiv.classList.add("is-me");
+                const badge = document.createElement("div");
+                badge.className = "me-badge";
+                badge.textContent = "나";
+                unitDiv.appendChild(badge);
+              }
             } else {
               const name = document.createElement("div");
               name.className = "preview-unit-name preview-empty";
@@ -884,30 +1254,102 @@
         content.appendChild(floorBlock);
       }
 
-      // 미리보기가 있을 때만 저장/공유 버튼 노출
+      // 위치 기반 이웃 이벤트 렌더
+      const evEl = document.getElementById("previewEvents");
+      if (evEl) {
+        const evs = generateEvents(results);
+        lastEvents = evs; // 공유 문구에 랜덤 1개 넣기 위해 보관
+        if (evs.length) {
+          evEl.style.display = "block";
+          evEl.innerHTML = '<div class="preview-events-title">🎬 우리 아파트 이야기</div>'
+            + evs.map(e => `<div class="preview-event-item${e.legendary ? " legend" : ""}">`
+                + `<div class="ev-line">· ${e.text}</div>`
+                + (e.desc ? `<div class="ev-desc">${e.desc}</div>` : "")
+                + `</div>`).join("");
+        } else {
+          evEl.style.display = "none";
+          evEl.innerHTML = "";
+        }
+      }
+
+      // 미리보기가 있을 때만 저장/공유 버튼 + 비율 토글 노출
       downloadBtn.style.display = "inline-block";
-      shareBtn.style.display = "inline-block";
+      shareBtns.forEach(b => b.style.display = "inline-block");
+      ratioToggle.style.display = "inline-flex";
     }
 
     // 공유/저장 공통 문구
-    const SHARE_TEXT = "내가 배치한 세븐틴 아파트 🏢💎\n#세븐틴아파트 #SVT_Mansion";
+    // ── 플랫폼별 공유 포맷 (해시태그 + 랜덤 이벤트 1개 포함) ──────────────
+    const PLAY_URL = "https://alfira0526.github.io/SVT_Mansion/";
+    let lastEvents = []; // 마지막 생성 이벤트 (공유 문구에 랜덤 1개 넣음)
 
-    // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유가 공유하는 헬퍼)
-    function renderPreviewBlob() {
+    const PLATFORM_TAGS = {
+      twitter:   "#세븐틴 #SEVENTEEN #세븐틴아파트 #SVT_Mansion",
+      kakao:     "#세븐틴 #세븐틴아파트 #SVT_Mansion",
+      instagram: "#세븐틴 #SEVENTEEN #캐럿 #세븐틴아파트 #SVT_Mansion"
+    };
+    const PLATFORM_NAME = { twitter: "트위터", kakao: "카카오톡", instagram: "인스타 스토리" };
+
+    function pickRandomEvent() {
+      if (!lastEvents.length) return null;
+      return lastEvents[Math.floor(Math.random() * lastEvents.length)];
+    }
+
+    function buildShareText(platform) {
+      const nick = (nickInput.value || "").trim();
+      const title = nick
+        ? `${nick}${subjectParticle(nick)} 세븐틴 아파트에 입주했다! 🏢💎`
+        : "세븐틴이 한 아파트에 산다면? 🏢💎";
+      const ev = pickRandomEvent();
+      const evLine = ev ? `\n\n🎬 ${ev.text}` : "";
+      return `${title}${evLine}\n\n${PLATFORM_TAGS[platform] || ""}\n${PLAY_URL}`;
+    }
+
+    function shareFileName(ratio) {
+      return ratio === "916" ? "SVT_Mansion_story.png"
+           : ratio === "45" ? "SVT_Mansion_4x5.png"
+           : "SVT_Mansion.png";
+    }
+
+    // 캔버스를 지정 비율(w:h)의 새 캔버스에 크롭 없이 중앙 배치(레터박스). 4:5·9:16 공유용.
+    function composeToRatio(src, wRatio, hRatio, bg) {
+      const target = wRatio / hRatio;
+      const sw = src.width, sh = src.height;
+      let cw, ch;
+      if (sw / sh > target) { cw = sw; ch = Math.round(sw / target); }  // 원본이 더 넓음 → 위아래 여백
+      else { ch = sh; cw = Math.round(sh * target); }                    // 원본이 더 김 → 좌우 여백
+      const c = document.createElement("canvas");
+      c.width = cw; c.height = ch;
+      const ctx = c.getContext("2d");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.drawImage(src, Math.round((cw - sw) / 2), Math.round((ch - sh) / 2));
+      return c;
+    }
+
+    // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유 공용)
+    // ratio: "original" | "45"(피드·컴팩트) | "916"(인스타 스토리)
+    function renderPreviewBlob(ratio) {
       const container = document.getElementById("previewContainer");
       if (!container) return Promise.reject(new Error("previewContainer 없음"));
+
+      const compact = ratio === "45"; // 4:5 는 압축, 9:16 은 원본 높이 유지(레터박스)
+      if (compact) container.classList.add("compact");
+      const dims = ratio === "45" ? [4, 5] : ratio === "916" ? [9, 16] : null;
 
       return html2canvas(container, {
         backgroundColor: null,
         scale: 2, // 해상도 업
         windowWidth: container.scrollWidth,
         windowHeight: container.scrollHeight
-      }).then(canvas => new Promise((resolve, reject) => {
-        // dataURL 대신 Blob 사용 (모바일에서 파일명/공유 적용 잘 되도록)
-        canvas.toBlob(blob => {
-          blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
-        }, "image/png");
-      }));
+      })
+        .then(canvas => dims ? composeToRatio(canvas, dims[0], dims[1], "#22232b") : canvas)
+        .then(canvas => new Promise((resolve, reject) => {
+          canvas.toBlob(blob => {
+            blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
+          }, "image/png");
+        }))
+        .finally(() => container.classList.remove("compact"));
     }
 
     // Blob 을 파일로 다운로드
@@ -925,9 +1367,10 @@
     // 미리보기 영역을 PNG 이미지로 다운로드
     function downloadPreviewAsImage() {
       if (!ensureLib()) return;
-      renderPreviewBlob()
+      const fname = shareFileName(shareRatio);
+      renderPreviewBlob(shareRatio)
         .then(blob => {
-          downloadBlob(blob, "SVT_Mansion.png");
+          downloadBlob(blob, fname);
           showToast("이미지를 저장했어요! 📷", "success");
         })
         .catch(err => {
@@ -936,35 +1379,46 @@
         });
     }
 
-    // 원탭 공유 (Web Share API) — 미지원 시 다운로드 + 문구 복사로 폴백
-    function sharePreview() {
+    // 플랫폼별 공유 (트위터/카카오톡/인스타 스토리). 이미지 + 해시태그 + 랜덤 이벤트 문구.
+    //   모바일: OS 공유 시트에서 앱 선택 / 데스크톱: 트위터는 작성창, 그 외 문구 복사 + 이미지 저장
+    function shareTo(platform) {
       if (!ensureLib()) return;
-      renderPreviewBlob()
+      const text = buildShareText(platform);
+      const ratio = platform === "instagram" ? "916" : shareRatio; // 인스타는 9:16 스토리
+      const fname = shareFileName(ratio);
+      renderPreviewBlob(ratio)
         .then(blob => {
-          const file = new File([blob], "SVT_Mansion.png", { type: "image/png" });
-
+          const file = new File([blob], fname, { type: "image/png" });
           if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-            return navigator.share({ files: [file], text: SHARE_TEXT }).catch(err => {
-              // 사용자가 공유 시트를 닫은 경우는 오류 아님
-              if (err && err.name === "AbortError") return;
-              throw err;
+            return navigator.share({ files: [file], text }).catch(err => {
+              if (err && err.name === "AbortError") return; // 사용자가 닫음
+              return shareDesktopFallback(platform, text, blob, fname);
             });
           }
-
-          // 폴백: 이미지 저장 + 공유 문구 클립보드 복사
-          downloadBlob(blob, "SVT_Mansion.png");
-          const copyText = SHARE_TEXT + "\n" + location.href;
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            return navigator.clipboard.writeText(copyText)
-              .then(() => alert("이 브라우저는 바로 공유를 지원하지 않아요.\n이미지를 저장했고 공유 문구를 복사했어요! 트위터에 붙여넣어 주세요 🐦"))
-              .catch(() => alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText));
-          }
-          alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText);
+          return shareDesktopFallback(platform, text, blob, fname);
         })
         .catch(err => {
           console.error(err);
           showToast("공유 준비 중 오류가 발생했어요. 다시 시도해 주세요.", "error");
         });
+    }
+
+    function shareDesktopFallback(platform, text, blob, fname) {
+      downloadBlob(blob, fname); // 첨부용 이미지 저장
+      if (platform === "twitter") {
+        window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(text), "_blank", "noopener");
+        showToast("트위터 작성창을 열었어요. 저장된 이미지를 첨부해 주세요 🐦", "success");
+        return;
+      }
+      const app = PLATFORM_NAME[platform] || "SNS";
+      const copyP = (navigator.clipboard && navigator.clipboard.writeText)
+        ? navigator.clipboard.writeText(text).then(() => true).catch(() => false)
+        : Promise.resolve(false);
+      return copyP.then(ok => {
+        showToast(ok
+          ? `문구를 복사했어요! 이미지도 저장했으니 ${app}에 붙여넣어 주세요 📋`
+          : `이미지를 저장했어요. ${app}에 올려 공유해 주세요`, "success");
+      });
     }
 
     // 배열 제자리 셔플 (Fisher–Yates)
@@ -1076,7 +1530,15 @@
     document.getElementById("randomBtn").addEventListener("click", randomAssign);
     document.getElementById("clearBtn").addEventListener("click", clearAll);
     downloadBtn.addEventListener("click", downloadPreviewAsImage);
-    shareBtn.addEventListener("click", sharePreview);
+    shareBtns.forEach(b => b.addEventListener("click", () => shareTo(b.dataset.platform)));
+
+    // 이미지 비율 토글 (원본 / 4:5 공유용)
+    ratioToggle.querySelectorAll("button").forEach(btn => {
+      btn.addEventListener("click", () => {
+        shareRatio = btn.dataset.ratio;
+        ratioToggle.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+      });
+    });
   </script>
 </body>
 </html>
