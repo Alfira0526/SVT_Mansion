@@ -588,6 +588,148 @@
 
     .ratio-toggle button:hover { transform: none; }
 
+    /* 저장·공유 바 (결과 카드 하단) */
+    .share-bar {
+      margin-top: 14px;
+      padding: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .share-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .share-bar-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .share-bar-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .share-btn[data-platform="twitter"] { border-color: #4a90d9; }
+    .share-btn[data-platform="kakao"] { border-color: #d9c14a; }
+    .share-btn[data-platform="instagram"] { border-color: #c9508f; }
+
+    /* 조건별 모션 팝업 오버레이 */
+    .motion-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10, 10, 14, 0.72);
+      backdrop-filter: blur(2px);
+    }
+
+    .motion-overlay.show { display: flex; }
+
+    .motion-stage {
+      position: relative;
+      width: min(92vw, 460px);
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .motion-ava {
+      position: absolute;
+      width: 116px;
+      height: 116px;
+      border-radius: 22px;
+      background-size: cover;
+      background-position: center;
+      border: 3px solid rgba(247, 202, 201, 0.7);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      top: 50%;
+      opacity: 0;
+    }
+
+    .motion-ava.left  { left: 6%;  transform: translateY(-50%) translateX(-140%) rotate(-12deg); }
+    .motion-ava.right { right: 6%; transform: translateY(-50%) translateX(140%) rotate(12deg); }
+
+    .motion-overlay.play .motion-ava.left  { animation: mvLeft 0.9s cubic-bezier(.6,-0.3,.3,1.4) forwards; }
+    .motion-overlay.play .motion-ava.right { animation: mvRight 0.9s cubic-bezier(.6,-0.3,.3,1.4) forwards; }
+
+    @keyframes mvLeft {
+      0%   { opacity: 0; transform: translateY(-50%) translateX(-140%) rotate(-12deg); }
+      60%  { opacity: 1; transform: translateY(-50%) translateX(28%) rotate(-4deg); }
+      72%  { transform: translateY(-50%) translateX(14%) rotate(-6deg) scale(1.08); }
+      100% { opacity: 1; transform: translateY(-50%) translateX(24%) rotate(-3deg); }
+    }
+    @keyframes mvRight {
+      0%   { opacity: 0; transform: translateY(-50%) translateX(140%) rotate(12deg); }
+      60%  { opacity: 1; transform: translateY(-50%) translateX(-28%) rotate(4deg); }
+      72%  { transform: translateY(-50%) translateX(-14%) rotate(6deg) scale(1.08); }
+      100% { opacity: 1; transform: translateY(-50%) translateX(-24%) rotate(3deg); }
+    }
+
+    .motion-flash {
+      position: absolute;
+      width: 150px; height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.95), rgba(247,202,201,0.5) 40%, transparent 70%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .motion-overlay.play .motion-flash { animation: mvFlash 0.5s ease 0.58s; }
+    @keyframes mvFlash {
+      0% { opacity: 0; transform: scale(0.3); }
+      40% { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 0; transform: scale(1.6); }
+    }
+
+    .motion-msg {
+      position: absolute;
+      bottom: 6px;
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      padding: 0 16px;
+      opacity: 0;
+    }
+    .motion-msg .sub { display: block; font-size: 12.5px; font-weight: 500; color: #d6d7e2; margin-top: 4px; }
+    .motion-overlay.play .motion-msg { animation: mvMsg 0.5s ease 0.72s forwards; }
+    @keyframes mvMsg {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .motion-hint {
+      position: absolute;
+      top: 10px; right: 14px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .motion-overlay.play .motion-ava.left,
+      .motion-overlay.play .motion-ava.right,
+      .motion-overlay.play .motion-flash,
+      .motion-overlay.play .motion-msg { animation-duration: 0.01s; }
+    }
+
+    /* 캡처 중에는 애니메이션/트랜지션을 꺼서 아바타가 반투명(팝 애니 중간)으로 찍히는 것 방지 */
+    .preview-container.capturing,
+    .preview-container.capturing * {
+      animation: none !important;
+      transition: none !important;
+      opacity: 1 !important;
+    }
+
     /* 4:5 공유용 컴팩트 렌더 (캡처 시에만 적용) */
     .preview-container.compact .preview-unit { min-height: 96px; padding: 10px 8px; }
     .preview-container.compact .preview-avatar { width: 50px; height: 50px; margin-bottom: 5px; }
@@ -639,14 +781,6 @@
       <button id="randomBtn" type="button" aria-label="멤버 무작위 배치">🎲 랜덤 배치</button>
       <button id="saveBtn" type="button">이사하기</button>
       <button id="clearBtn" type="button" class="ghost-btn" aria-label="전체 배치 초기화">전체 초기화</button>
-      <span id="ratioToggle" class="ratio-toggle" style="display:none;" role="group" aria-label="이미지 비율">
-        <button type="button" data-ratio="original" class="active">원본</button>
-        <button type="button" data-ratio="45">4:5 공유용</button>
-      </span>
-      <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
-      <button class="share-btn" type="button" data-platform="twitter" style="display:none;">🐦 트위터</button>
-      <button class="share-btn" type="button" data-platform="kakao" style="display:none;">💬 카카오톡</button>
-      <button class="share-btn" type="button" data-platform="instagram" style="display:none;">📸 인스타 스토리</button>
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
@@ -660,7 +794,27 @@
       <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
       <div class="preview-brand">💎 SVT MANSION</div>
     </div>
+
+    <!-- 저장·공유 바 (결과 카드 하단) -->
+    <div id="shareBar" class="share-bar" style="display:none;">
+      <div class="share-bar-row">
+        <span class="share-bar-label">이미지 비율</span>
+        <span id="ratioToggle" class="ratio-toggle" role="group" aria-label="이미지 비율">
+          <button type="button" data-ratio="original" class="active">원본</button>
+          <button type="button" data-ratio="45">4:5</button>
+        </span>
+      </div>
+      <div class="share-bar-btns">
+        <button id="downloadBtn" type="button">💾 이미지 저장</button>
+        <button class="share-btn" type="button" data-platform="twitter">🐦 트위터</button>
+        <button class="share-btn" type="button" data-platform="kakao">💬 카카오톡</button>
+        <button class="share-btn" type="button" data-platform="instagram">📸 인스타 스토리</button>
+      </div>
+    </div>
   </div>
+
+  <!-- 조건별 모션 팝업 오버레이 -->
+  <div id="motionOverlay" class="motion-overlay" aria-hidden="true"></div>
 
   <!-- 숨겨진 폼: Apps Script Web App 으로 전송용 -->
   <form id="gsheetForm"
@@ -711,6 +865,7 @@
     const allSelects = [];
     const downloadBtn = document.getElementById("downloadBtn");
     const shareBtns = Array.from(document.querySelectorAll(".share-btn"));
+    const shareBar = document.getElementById("shareBar");
     const nickInput = document.getElementById("nickInput");
     const ratioToggle = document.getElementById("ratioToggle");
     let shareRatio = "original"; // "original" | "45"
@@ -767,9 +922,7 @@
       try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
       // 미리보기/공유 버튼 숨김
       document.getElementById("previewContainer").style.display = "none";
-      downloadBtn.style.display = "none";
-      shareBtns.forEach(b => b.style.display = "none");
-      ratioToggle.style.display = "none";
+      shareBar.style.display = "none";
       showToast("전체 배치를 초기화했어요.");
     }
 
@@ -1038,7 +1191,8 @@
       const solo = EVENT_DATA.solo || {};
       const position = EVENT_DATA.position || [];
       const gose = EVENT_DATA.gose || [];
-      const caps = EV_CONFIG.caps || { combo: 3, gose: 1, pair: 2, directional: 2, position: 1, solo: 2 };
+      const guests = EVENT_DATA.guests || [];
+      const caps = EV_CONFIG.caps || { combo: 3, gose: 1, guest: 1, pair: 2, directional: 2, position: 1, solo: 2 };
       const maxEvents = EV_CONFIG.maxEvents || 5;
       const goseMin = EV_CONFIG.goseMinPlaced || 6;
 
@@ -1085,6 +1239,14 @@
       if (placed.size >= goseMin && gose.length) {
         const g = seededShuffle(gose, rng)[0];
         add(g.text, g.desc, 2, "gose", false);
+      }
+      // 공실 게스트 (친한 인물) — 조건 멤버 배치 + 공실이 하나라도 있으면
+      const vacantCount = 15 - Object.keys(map).length;
+      if (vacantCount >= 1) {
+        guests.forEach(g => {
+          const ms = g.when || [];
+          if (ms.length && ms.every(x => placed.has(x))) add(g.text, g.desc, 2, "guest", false);
+        });
       }
       // 옆집 케미 (무방향 인접)
       pairs.forEach(p => {
@@ -1138,6 +1300,74 @@
       return chosen.map(e => ({ text: e.text, desc: e.desc, legendary: e.legendary }));
     }
 
+    // ── 조건별 모션 팝업 (data/events.js 의 motions) ──
+    function residentMapOf(results) {
+      const m = {};
+      results.forEach(r => { if (r.resident && r.resident !== "공실") m[r.floor + "-" + r.unit] = r.resident; });
+      return m;
+    }
+    function findMotion(results) {
+      const motions = EVENT_DATA.motions || [];
+      const map = residentMapOf(results);
+      for (const mo of motions) {
+        const w = mo.when || {};
+        if (w.around && Array.isArray(w.pair)) {
+          for (let f = 1; f <= FLOORS; f++) {
+            for (let u = 1; u <= 3; u++) {
+              if (map[f + "-" + u] === w.around) {
+                const nb = new Set([map[f + "-" + (u - 1)], map[f + "-" + (u + 1)]]);
+                if (nb.has(w.pair[0]) && nb.has(w.pair[1])) return mo;
+              }
+            }
+          }
+        } else if (Array.isArray(w.adjacent) && w.adjacent.length === 2) {
+          for (let f = 1; f <= FLOORS; f++) {
+            for (let u = 1; u <= 3; u++) {
+              const cur = map[f + "-" + u];
+              if (!cur) continue;
+              const neigh = [];
+              if (u < 3) neigh.push(map[f + "-" + (u + 1)]);
+              if (f < FLOORS) neigh.push(map[(f + 1) + "-" + u]);
+              for (const nx of neigh) {
+                if ((cur === w.adjacent[0] && nx === w.adjacent[1]) ||
+                    (cur === w.adjacent[1] && nx === w.adjacent[0])) return mo;
+              }
+            }
+          }
+        }
+      }
+      return null;
+    }
+    function playMotion(mo) {
+      const ov = document.getElementById("motionOverlay");
+      if (!ov || !mo) return;
+      const L = residents.find(r => r.id === (mo.imgs || [])[0]);
+      const R = residents.find(r => r.id === (mo.imgs || [])[1]);
+      ov.innerHTML =
+        '<div class="motion-stage">'
+        + '<div class="motion-hint">탭하면 닫혀요</div>'
+        + `<div class="motion-ava left" style="background-image:url(${L ? L.img : ""})"></div>`
+        + `<div class="motion-ava right" style="background-image:url(${R ? R.img : ""})"></div>`
+        + '<div class="motion-flash"></div>'
+        + `<div class="motion-msg">${mo.title || ""}<span class="sub">${mo.sub || ""}</span></div>`
+        + '</div>';
+      ov.classList.add("show");
+      void ov.offsetWidth; // reflow → 애니메이션 시작
+      ov.classList.add("play");
+      let closed = false;
+      let t = 0;
+      const close = () => {
+        if (closed) return;
+        closed = true;
+        ov.classList.remove("show", "play");
+        ov.innerHTML = "";
+        ov.removeEventListener("click", close);
+        clearTimeout(t);
+      };
+      ov.addEventListener("click", close);
+      t = setTimeout(close, 2800);
+    }
+
     function renderPreview(results) {
       const container = document.getElementById("previewContainer");
       const content = document.getElementById("previewContent");
@@ -1146,9 +1376,7 @@
       if (!anySelected) {
         container.style.display = "block";
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
-        downloadBtn.style.display = "none";
-        shareBtns.forEach(b => b.style.display = "none");
-        ratioToggle.style.display = "none";
+        shareBar.style.display = "none";
         return;
       }
 
@@ -1273,9 +1501,7 @@
       }
 
       // 미리보기가 있을 때만 저장/공유 버튼 + 비율 토글 노출
-      downloadBtn.style.display = "inline-block";
-      shareBtns.forEach(b => b.style.display = "inline-block");
-      ratioToggle.style.display = "inline-flex";
+      shareBar.style.display = "block";
     }
 
     // 공유/저장 공통 문구
@@ -1327,6 +1553,22 @@
       return c;
     }
 
+    // 캡처 전 아바타 배경 이미지를 모두 로드/디코드 (모바일에서 사진이 덜 뜨는 문제 방지)
+    function preloadAvatars(container) {
+      const urls = [];
+      container.querySelectorAll(".preview-avatar").forEach(el => {
+        const m = getComputedStyle(el).backgroundImage.match(/url\(["']?(.+?)["']?\)/);
+        if (m && m[1]) urls.push(m[1]);
+      });
+      return Promise.all(urls.map(u => new Promise(res => {
+        const img = new Image();
+        const done = () => res();
+        img.onload = () => { img.decode ? img.decode().then(done, done) : done(); };
+        img.onerror = done;
+        img.src = u;
+      })));
+    }
+
     // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유 공용)
     // ratio: "original" | "45"(피드·컴팩트) | "916"(인스타 스토리)
     function renderPreviewBlob(ratio) {
@@ -1335,21 +1577,25 @@
 
       const compact = ratio === "45"; // 4:5 는 압축, 9:16 은 원본 높이 유지(레터박스)
       if (compact) container.classList.add("compact");
+      container.classList.add("capturing"); // 캡처 중 애니메이션 정지 → 반투명으로 찍히는 것 방지
       const dims = ratio === "45" ? [4, 5] : ratio === "916" ? [9, 16] : null;
 
-      return html2canvas(container, {
-        backgroundColor: null,
-        scale: 2, // 해상도 업
-        windowWidth: container.scrollWidth,
-        windowHeight: container.scrollHeight
-      })
+      return preloadAvatars(container)
+        .then(() => html2canvas(container, {
+          backgroundColor: null,
+          scale: 2, // 해상도 업
+          useCORS: true,
+          imageTimeout: 15000,
+          windowWidth: container.scrollWidth,
+          windowHeight: container.scrollHeight
+        }))
         .then(canvas => dims ? composeToRatio(canvas, dims[0], dims[1], "#22232b") : canvas)
         .then(canvas => new Promise((resolve, reject) => {
           canvas.toBlob(blob => {
             blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
           }, "image/png");
         }))
-        .finally(() => container.classList.remove("compact"));
+        .finally(() => container.classList.remove("compact", "capturing"));
     }
 
     // Blob 을 파일로 다운로드
@@ -1482,6 +1728,9 @@
 
       // 미리보기 생성
       renderPreview(results);
+      // 조건별 모션 팝업 (있으면 재생)
+      const mo = findMotion(results);
+      if (mo) playMotion(mo);
       // 미리보기 위치로 부드럽게 스크롤
       document.getElementById("previewContainer").scrollIntoView({ behavior: "smooth", block: "start" });
 
