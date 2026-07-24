@@ -624,8 +624,8 @@
       각 집에 멤버들을 한 명씩 배치해 주세요! 같은 멤버는 한 번만 배치할 수 있습니다.<br>
       고민되면 <strong>🎲 랜덤 배치</strong>로 한 번에 채울 수 있어요. (나는 안 넣을 경우 공실을 두 개 두면 됩니다.)<br>
       배치를 마친 뒤 <strong>이사하기</strong>를 누르면 아래에 입주 현황 미리보기가 생성됩니다!<br>
-      <strong>이미지로 저장하기</strong> 또는 <strong>📲 공유하기</strong>로 결과를 남겨보세요. 배치는 자동 저장됩니다.<br>
-      닉네임을 넣으면 결과 카드가 <strong>"OO이 세븐틴 아파트에 입주했다"</strong>로 바뀌고, <strong>4:5 공유용</strong> 비율로도 저장할 수 있어요.
+      <strong>이미지로 저장</strong>하거나 <strong>🐦 트위터 · 💬 카카오톡 · 📸 인스타 스토리</strong>로 공유해 보세요 (해시태그·이벤트 문구 자동 포함). 배치는 자동 저장됩니다.<br>
+      닉네임을 넣으면 결과 카드가 <strong>"OO이 세븐틴 아파트에 입주했다"</strong>로 바뀌고, <strong>4:5</strong> 비율로도 저장할 수 있어요.
     </p>
 
     <div class="nick-row">
@@ -644,7 +644,9 @@
         <button type="button" data-ratio="45">4:5 공유용</button>
       </span>
       <button id="downloadBtn" type="button" style="display:none;">이미지로 저장하기</button>
-      <button id="shareBtn" type="button" style="display:none;">📲 공유하기</button>
+      <button class="share-btn" type="button" data-platform="twitter" style="display:none;">🐦 트위터</button>
+      <button class="share-btn" type="button" data-platform="kakao" style="display:none;">💬 카카오톡</button>
+      <button class="share-btn" type="button" data-platform="instagram" style="display:none;">📸 인스타 스토리</button>
     </div>
 
     <div id="previewContainer" class="preview-container" style="display:none;">
@@ -708,7 +710,7 @@
     const buildingEl = document.getElementById("building");
     const allSelects = [];
     const downloadBtn = document.getElementById("downloadBtn");
-    const shareBtn = document.getElementById("shareBtn");
+    const shareBtns = Array.from(document.querySelectorAll(".share-btn"));
     const nickInput = document.getElementById("nickInput");
     const ratioToggle = document.getElementById("ratioToggle");
     let shareRatio = "original"; // "original" | "45"
@@ -766,7 +768,7 @@
       // 미리보기/공유 버튼 숨김
       document.getElementById("previewContainer").style.display = "none";
       downloadBtn.style.display = "none";
-      shareBtn.style.display = "none";
+      shareBtns.forEach(b => b.style.display = "none");
       ratioToggle.style.display = "none";
       showToast("전체 배치를 초기화했어요.");
     }
@@ -1145,7 +1147,7 @@
         container.style.display = "block";
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
         downloadBtn.style.display = "none";
-        shareBtn.style.display = "none";
+        shareBtns.forEach(b => b.style.display = "none");
         ratioToggle.style.display = "none";
         return;
       }
@@ -1256,6 +1258,7 @@
       const evEl = document.getElementById("previewEvents");
       if (evEl) {
         const evs = generateEvents(results);
+        lastEvents = evs; // 공유 문구에 랜덤 1개 넣기 위해 보관
         if (evs.length) {
           evEl.style.display = "block";
           evEl.innerHTML = '<div class="preview-events-title">🎬 우리 아파트 이야기</div>'
@@ -1271,14 +1274,44 @@
 
       // 미리보기가 있을 때만 저장/공유 버튼 + 비율 토글 노출
       downloadBtn.style.display = "inline-block";
-      shareBtn.style.display = "inline-block";
+      shareBtns.forEach(b => b.style.display = "inline-block");
       ratioToggle.style.display = "inline-flex";
     }
 
     // 공유/저장 공통 문구
-    const SHARE_TEXT = "내가 배치한 세븐틴 아파트 🏢💎\n#세븐틴아파트 #SVT_Mansion";
+    // ── 플랫폼별 공유 포맷 (해시태그 + 랜덤 이벤트 1개 포함) ──────────────
+    const PLAY_URL = "https://alfira0526.github.io/SVT_Mansion/";
+    let lastEvents = []; // 마지막 생성 이벤트 (공유 문구에 랜덤 1개 넣음)
 
-    // 캔버스를 지정 비율(w:h)의 새 캔버스에 크롭 없이 중앙 배치(레터박스). 4:5 공유용.
+    const PLATFORM_TAGS = {
+      twitter:   "#세븐틴 #SEVENTEEN #세븐틴아파트 #SVT_Mansion",
+      kakao:     "#세븐틴 #세븐틴아파트 #SVT_Mansion",
+      instagram: "#세븐틴 #SEVENTEEN #캐럿 #세븐틴아파트 #SVT_Mansion"
+    };
+    const PLATFORM_NAME = { twitter: "트위터", kakao: "카카오톡", instagram: "인스타 스토리" };
+
+    function pickRandomEvent() {
+      if (!lastEvents.length) return null;
+      return lastEvents[Math.floor(Math.random() * lastEvents.length)];
+    }
+
+    function buildShareText(platform) {
+      const nick = (nickInput.value || "").trim();
+      const title = nick
+        ? `${nick}${subjectParticle(nick)} 세븐틴 아파트에 입주했다! 🏢💎`
+        : "세븐틴이 한 아파트에 산다면? 🏢💎";
+      const ev = pickRandomEvent();
+      const evLine = ev ? `\n\n🎬 ${ev.text}` : "";
+      return `${title}${evLine}\n\n${PLATFORM_TAGS[platform] || ""}\n${PLAY_URL}`;
+    }
+
+    function shareFileName(ratio) {
+      return ratio === "916" ? "SVT_Mansion_story.png"
+           : ratio === "45" ? "SVT_Mansion_4x5.png"
+           : "SVT_Mansion.png";
+    }
+
+    // 캔버스를 지정 비율(w:h)의 새 캔버스에 크롭 없이 중앙 배치(레터박스). 4:5·9:16 공유용.
     function composeToRatio(src, wRatio, hRatio, bg) {
       const target = wRatio / hRatio;
       const sw = src.width, sh = src.height;
@@ -1294,14 +1327,15 @@
       return c;
     }
 
-    // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유가 공유하는 헬퍼)
-    // ratio: "original" | "45"  — 4:5 는 컴팩트 렌더 후 4:5 캔버스에 레터박스 합성
+    // 미리보기 영역을 PNG Blob 으로 렌더 (저장/공유 공용)
+    // ratio: "original" | "45"(피드·컴팩트) | "916"(인스타 스토리)
     function renderPreviewBlob(ratio) {
       const container = document.getElementById("previewContainer");
       if (!container) return Promise.reject(new Error("previewContainer 없음"));
 
-      const compact = ratio === "45";
+      const compact = ratio === "45"; // 4:5 는 압축, 9:16 은 원본 높이 유지(레터박스)
       if (compact) container.classList.add("compact");
+      const dims = ratio === "45" ? [4, 5] : ratio === "916" ? [9, 16] : null;
 
       return html2canvas(container, {
         backgroundColor: null,
@@ -1309,7 +1343,7 @@
         windowWidth: container.scrollWidth,
         windowHeight: container.scrollHeight
       })
-        .then(canvas => compact ? composeToRatio(canvas, 4, 5, "#22232b") : canvas)
+        .then(canvas => dims ? composeToRatio(canvas, dims[0], dims[1], "#22232b") : canvas)
         .then(canvas => new Promise((resolve, reject) => {
           canvas.toBlob(blob => {
             blob ? resolve(blob) : reject(new Error("이미지 생성 실패"));
@@ -1333,7 +1367,7 @@
     // 미리보기 영역을 PNG 이미지로 다운로드
     function downloadPreviewAsImage() {
       if (!ensureLib()) return;
-      const fname = shareRatio === "45" ? "SVT_Mansion_4x5.png" : "SVT_Mansion.png";
+      const fname = shareFileName(shareRatio);
       renderPreviewBlob(shareRatio)
         .then(blob => {
           downloadBlob(blob, fname);
@@ -1345,36 +1379,46 @@
         });
     }
 
-    // 원탭 공유 (Web Share API) — 미지원 시 다운로드 + 문구 복사로 폴백
-    function sharePreview() {
+    // 플랫폼별 공유 (트위터/카카오톡/인스타 스토리). 이미지 + 해시태그 + 랜덤 이벤트 문구.
+    //   모바일: OS 공유 시트에서 앱 선택 / 데스크톱: 트위터는 작성창, 그 외 문구 복사 + 이미지 저장
+    function shareTo(platform) {
       if (!ensureLib()) return;
-      const fname = shareRatio === "45" ? "SVT_Mansion_4x5.png" : "SVT_Mansion.png";
-      renderPreviewBlob(shareRatio)
+      const text = buildShareText(platform);
+      const ratio = platform === "instagram" ? "916" : shareRatio; // 인스타는 9:16 스토리
+      const fname = shareFileName(ratio);
+      renderPreviewBlob(ratio)
         .then(blob => {
           const file = new File([blob], fname, { type: "image/png" });
-
           if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-            return navigator.share({ files: [file], text: SHARE_TEXT }).catch(err => {
-              // 사용자가 공유 시트를 닫은 경우는 오류 아님
-              if (err && err.name === "AbortError") return;
-              throw err;
+            return navigator.share({ files: [file], text }).catch(err => {
+              if (err && err.name === "AbortError") return; // 사용자가 닫음
+              return shareDesktopFallback(platform, text, blob, fname);
             });
           }
-
-          // 폴백: 이미지 저장 + 공유 문구 클립보드 복사
-          downloadBlob(blob, fname);
-          const copyText = SHARE_TEXT + "\n" + location.href;
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            return navigator.clipboard.writeText(copyText)
-              .then(() => alert("이 브라우저는 바로 공유를 지원하지 않아요.\n이미지를 저장했고 공유 문구를 복사했어요! 트위터에 붙여넣어 주세요 🐦"))
-              .catch(() => alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText));
-          }
-          alert("이미지를 저장했어요! 트위터에 올려 공유해 주세요 🐦\n\n" + copyText);
+          return shareDesktopFallback(platform, text, blob, fname);
         })
         .catch(err => {
           console.error(err);
           showToast("공유 준비 중 오류가 발생했어요. 다시 시도해 주세요.", "error");
         });
+    }
+
+    function shareDesktopFallback(platform, text, blob, fname) {
+      downloadBlob(blob, fname); // 첨부용 이미지 저장
+      if (platform === "twitter") {
+        window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(text), "_blank", "noopener");
+        showToast("트위터 작성창을 열었어요. 저장된 이미지를 첨부해 주세요 🐦", "success");
+        return;
+      }
+      const app = PLATFORM_NAME[platform] || "SNS";
+      const copyP = (navigator.clipboard && navigator.clipboard.writeText)
+        ? navigator.clipboard.writeText(text).then(() => true).catch(() => false)
+        : Promise.resolve(false);
+      return copyP.then(ok => {
+        showToast(ok
+          ? `문구를 복사했어요! 이미지도 저장했으니 ${app}에 붙여넣어 주세요 📋`
+          : `이미지를 저장했어요. ${app}에 올려 공유해 주세요`, "success");
+      });
     }
 
     // 배열 제자리 셔플 (Fisher–Yates)
@@ -1486,7 +1530,7 @@
     document.getElementById("randomBtn").addEventListener("click", randomAssign);
     document.getElementById("clearBtn").addEventListener("click", clearAll);
     downloadBtn.addEventListener("click", downloadPreviewAsImage);
-    shareBtn.addEventListener("click", sharePreview);
+    shareBtns.forEach(b => b.addEventListener("click", () => shareTo(b.dataset.platform)));
 
     // 이미지 비율 토글 (원본 / 4:5 공유용)
     ratioToggle.querySelectorAll("button").forEach(btn => {
