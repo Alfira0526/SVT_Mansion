@@ -794,6 +794,50 @@
     }
     .seq-next:hover { box-shadow: 0 6px 18px rgba(146, 168, 209, 0.4); transform: none; }
 
+    /* 이벤트 관련 멤버 이미지 (2인 이상이면 모핑/충돌) */
+    .seq-avatars {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 84px;
+      margin: 2px 0 12px;
+    }
+    .seq-avatars.none { font-size: 34px; }
+    .seq-ava {
+      width: 74px;
+      height: 74px;
+      border-radius: 16px;
+      background-size: cover;
+      background-position: center;
+      border: 2px solid rgba(247, 202, 201, 0.6);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+      animation: seqAvaPop 0.5s cubic-bezier(.2,.8,.3,1.5) both;
+    }
+    @keyframes seqAvaPop {
+      0% { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+      70% { transform: scale(1.1) rotate(3deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0); }
+    }
+    /* 2인 이상: 좌우에서 날아와 부딪히는 연출 */
+    .seq-avatars.clash { gap: 0; }
+    .seq-avatars.clash .seq-ava { margin: 0 -8px; }
+    .seq-avatars.clash .seq-ava:nth-child(odd)  { animation-name: seqClashL; }
+    .seq-avatars.clash .seq-ava:nth-child(even) { animation-name: seqClashR; }
+    @keyframes seqClashL {
+      0% { opacity: 0; transform: translateX(-70px) rotate(-12deg) scale(0.6); }
+      65% { opacity: 1; transform: translateX(8px) rotate(-5deg) scale(1.08); }
+      100% { transform: translateX(0) rotate(-3deg) scale(1); }
+    }
+    @keyframes seqClashR {
+      0% { opacity: 0; transform: translateX(70px) rotate(12deg) scale(0.6); }
+      65% { opacity: 1; transform: translateX(-8px) rotate(5deg) scale(1.08); }
+      100% { transform: translateX(0) rotate(3deg) scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .seq-ava { animation-duration: 0.01s; }
+    }
+
     /* 캡처 중에는 애니메이션/트랜지션을 꺼서 아바타가 반투명(팝 애니 중간)으로 찍히는 것 방지 */
     .preview-container.capturing,
     .preview-container.capturing * {
@@ -1299,34 +1343,34 @@
       const rng = mulberry32(seedFromResults(results));
       const pool = []; // { text, desc, tier, cat, legendary }
       const seenText = new Set();
-      const add = (text, desc, tier, cat, legendary) => {
+      const add = (text, desc, tier, cat, members, legendary) => {
         if (!text || seenText.has(text)) return;
         seenText.add(text);
-        pool.push({ text, desc: desc || "", tier, cat, legendary: !!legendary });
+        pool.push({ text, desc: desc || "", tier, cat, members: (members || []).slice(0, 4), legendary: !!legendary });
       };
 
       // 조합 (지정 멤버 전원 배치, 2~13인)
       combos.forEach(c => {
         const ms = c.members || [];
-        if (ms.length && ms.every(x => placed.has(x))) add(c.text, c.desc, c.legendary ? 0 : 1, "combo", c.legendary);
+        if (ms.length && ms.every(x => placed.has(x))) add(c.text, c.desc, c.legendary ? 0 : 1, "combo", ms, c.legendary);
       });
       // 고세 예능 (인원 임계 이상)
       if (placed.size >= goseMin && gose.length) {
         const g = seededShuffle(gose, rng)[0];
-        add(g.text, g.desc, 2, "gose", false);
+        add(g.text, g.desc, 2, "gose", [], false);
       }
       // 공실 게스트 (친한 인물) — 조건 멤버 배치 + 공실이 하나라도 있으면
       const vacantCount = 15 - Object.keys(map).length;
       if (vacantCount >= 1) {
         guests.forEach(g => {
           const ms = g.when || [];
-          if (ms.length && ms.every(x => placed.has(x))) add(g.text, g.desc, 2, "guest", false);
+          if (ms.length && ms.every(x => placed.has(x))) add(g.text, g.desc, 2, "guest", ms, false);
         });
       }
       // 옆집 케미 (무방향 인접)
       pairs.forEach(p => {
         const ms = p.members || [];
-        if (ms.length === 2 && adjPairs.has([...ms].sort().join("|"))) add(p.text, p.desc, 3, "pair", false);
+        if (ms.length === 2 && adjPairs.has([...ms].sort().join("|"))) add(p.text, p.desc, 3, "pair", ms, false);
       });
       // 방향성 케미 (horizontal: left↔right 같은 층 / vertical: upper↔lower 같은 라인)
       directional.forEach(d => {
@@ -1344,20 +1388,20 @@
             }
           }
         }
-        if (hit) add(d.text, d.desc, 3, "directional", false);
+        if (hit) add(d.text, d.desc, 3, "directional", d.type === "horizontal" ? [d.left, d.right] : [d.upper, d.lower], false);
       });
       // 위치 (floors: 한 칸이라도 / floorsAll: 그 층 만실)
       position.forEach(p => {
         let ok = false;
         if (p.floorsAll) ok = p.floorsAll.every(f => [1, 2, 3].every(u => map[f + "-" + u]));
         else if (p.floors) ok = p.floors.some(f => [1, 2, 3].some(u => map[f + "-" + u]));
-        if (ok) add(p.text, p.desc, 4, "position", false);
+        if (ok) add(p.text, p.desc, 4, "position", [], false);
       });
       // 개인 (이웃 있으면) — 멤버별 변형 중 시드로 하나
       Object.keys(solo).forEach(m => {
         if (hasNeighbor.has(m) && Array.isArray(solo[m]) && solo[m].length) {
           const s = seededShuffle(solo[m], rng)[0];
-          add(s.text, s.desc, 5, "solo", false);
+          add(s.text, s.desc, 5, "solo", [m], false);
         }
       });
 
@@ -1372,7 +1416,7 @@
         })
         .slice(0, maxEvents);
 
-      return chosen.map(e => ({ text: e.text, desc: e.desc, legendary: e.legendary }));
+      return chosen.map(e => ({ text: e.text, desc: e.desc, members: e.members || [], legendary: e.legendary }));
     }
 
     // ── 조건별 모션 팝업 (data/events.js 의 motions) ──
@@ -1456,6 +1500,17 @@
       renderSeqCard();
       el.classList.add("show");
     }
+    // 이벤트 관련 멤버 이미지 (2인 이상이면 모핑/충돌 연출)
+    function seqAvatarsHTML(members) {
+      const imgs = (members || [])
+        .map(id => residents.find(r => r.id === id))
+        .filter(r => r && r.img);
+      if (!imgs.length) return '<div class="seq-avatars none">📰</div>';
+      const cls = imgs.length >= 2 ? "seq-avatars clash" : "seq-avatars";
+      return `<div class="${cls}">`
+        + imgs.map((r, i) => `<div class="seq-ava" style="background-image:url(${r.img}); animation-delay:${i * 80}ms"></div>`).join("")
+        + '</div>';
+    }
     function renderSeqCard() {
       const el = document.getElementById("eventSeq");
       const e = seqEvents[seqIdx];
@@ -1464,6 +1519,7 @@
         '<div class="seq-card">'
         + '<div class="seq-top"><span class="seq-badge">📰 아파트 특보</span>'
         + `<span class="seq-count">${seqIdx + 1} / ${seqEvents.length}</span></div>`
+        + seqAvatarsHTML(e.members)
         + `<div class="seq-headline">${e.text}</div>`
         + (e.desc ? `<div class="seq-desc">${e.desc}</div>` : "")
         + `<button type="button" class="seq-next">${last ? "닫기" : "다음 →"}</button>`
@@ -1842,11 +1898,8 @@
       renderPreview(results);
       // 미리보기 위치로 부드럽게 스크롤
       document.getElementById("previewContainer").scrollIntoView({ behavior: "smooth", block: "start" });
-      // 조건별 모션 팝업(있으면) → 종료 후 순차 이벤트 팝업 (완전체 제외)
-      const mo = findMotion(results);
-      const openSeq = () => openEventSequence(lastEvents);
-      if (mo) playMotion(mo, openSeq);
-      else openSeq();
+      // 순차 이벤트 팝업 (각 팝업이 관련 멤버 이미지를 모핑). 모션 의존 제거 → 항상 즉시 노출
+      openEventSequence(lastEvents);
 
       // 시트 전송
       const payload = {
