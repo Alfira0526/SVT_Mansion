@@ -722,6 +722,78 @@
       .motion-overlay.play .motion-msg { animation-duration: 0.01s; }
     }
 
+    /* 순차 이벤트 팝업 (기사 특보 스타일) */
+    .event-seq {
+      position: fixed;
+      inset: 0;
+      z-index: 1300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(10, 10, 14, 0.7);
+      backdrop-filter: blur(2px);
+    }
+    .event-seq.show { display: flex; }
+
+    .seq-card {
+      width: min(94vw, 420px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+      animation: seqIn 0.28s cubic-bezier(.2,.8,.3,1.2);
+    }
+    @keyframes seqIn {
+      0% { opacity: 0; transform: translateY(16px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .seq-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .seq-badge {
+      font-size: 12px;
+      font-weight: 800;
+      color: #1a1a1a;
+      background: var(--accent-grad);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .seq-count { font-size: 12px; color: var(--text-dim); font-weight: 700; }
+
+    .seq-headline {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.4;
+      color: var(--text);
+      border-left: 3px solid var(--serenity);
+      padding-left: 10px;
+      margin-bottom: 10px;
+    }
+    .seq-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .seq-next {
+      width: 100%;
+      padding: 11px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent-grad);
+      color: #1a1a1a;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .seq-next:hover { box-shadow: 0 6px 18px rgba(146, 168, 209, 0.4); transform: none; }
+
     /* 캡처 중에는 애니메이션/트랜지션을 꺼서 아바타가 반투명(팝 애니 중간)으로 찍히는 것 방지 */
     .preview-container.capturing,
     .preview-container.capturing * {
@@ -815,6 +887,9 @@
 
   <!-- 조건별 모션 팝업 오버레이 -->
   <div id="motionOverlay" class="motion-overlay" aria-hidden="true"></div>
+
+  <!-- 순차 이벤트 팝업 (다음 버튼) -->
+  <div id="eventSeq" class="event-seq" aria-hidden="true"></div>
 
   <!-- 숨겨진 폼: Apps Script Web App 으로 전송용 -->
   <form id="gsheetForm"
@@ -1338,9 +1413,9 @@
       }
       return null;
     }
-    function playMotion(mo) {
+    function playMotion(mo, onClose) {
       const ov = document.getElementById("motionOverlay");
-      if (!ov || !mo) return;
+      if (!ov || !mo) { if (onClose) onClose(); return; }
       const L = residents.find(r => r.id === (mo.imgs || [])[0]);
       const R = residents.find(r => r.id === (mo.imgs || [])[1]);
       ov.innerHTML =
@@ -1363,9 +1438,46 @@
         ov.innerHTML = "";
         ov.removeEventListener("click", close);
         clearTimeout(t);
+        if (onClose) onClose();
       };
       ov.addEventListener("click", close);
       t = setTimeout(close, 2800);
+    }
+
+    // ── 순차 이벤트 팝업 (다음 버튼) — 완전체(legendary) 제외 ──
+    let seqEvents = [];
+    let seqIdx = 0;
+    function openEventSequence(events) {
+      seqEvents = (events || []).filter(e => e && !e.legendary && e.text);
+      if (!seqEvents.length) return;
+      seqIdx = 0;
+      const el = document.getElementById("eventSeq");
+      el.onclick = (e) => { if (e.target === el) closeEventSequence(); };
+      renderSeqCard();
+      el.classList.add("show");
+    }
+    function renderSeqCard() {
+      const el = document.getElementById("eventSeq");
+      const e = seqEvents[seqIdx];
+      const last = seqIdx === seqEvents.length - 1;
+      el.innerHTML =
+        '<div class="seq-card">'
+        + '<div class="seq-top"><span class="seq-badge">📰 아파트 특보</span>'
+        + `<span class="seq-count">${seqIdx + 1} / ${seqEvents.length}</span></div>`
+        + `<div class="seq-headline">${e.text}</div>`
+        + (e.desc ? `<div class="seq-desc">${e.desc}</div>` : "")
+        + `<button type="button" class="seq-next">${last ? "닫기" : "다음 →"}</button>`
+        + '</div>';
+      el.querySelector(".seq-next").addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        if (last) closeEventSequence();
+        else { seqIdx++; renderSeqCard(); }
+      });
+    }
+    function closeEventSequence() {
+      const el = document.getElementById("eventSeq");
+      el.classList.remove("show");
+      el.innerHTML = "";
     }
 
     function renderPreview(results) {
@@ -1728,11 +1840,13 @@
 
       // 미리보기 생성
       renderPreview(results);
-      // 조건별 모션 팝업 (있으면 재생)
-      const mo = findMotion(results);
-      if (mo) playMotion(mo);
       // 미리보기 위치로 부드럽게 스크롤
       document.getElementById("previewContainer").scrollIntoView({ behavior: "smooth", block: "start" });
+      // 조건별 모션 팝업(있으면) → 종료 후 순차 이벤트 팝업 (완전체 제외)
+      const mo = findMotion(results);
+      const openSeq = () => openEventSequence(lastEvents);
+      if (mo) playMotion(mo, openSeq);
+      else openSeq();
 
       // 시트 전송
       const payload = {
