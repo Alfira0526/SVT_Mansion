@@ -476,6 +476,12 @@
       line-height: 1.75;
     }
 
+    /* 레전드 이벤트 강조 (팬덤 '플렉스' 라인) */
+    .preview-event-item.legend {
+      color: #ffd79a;
+      font-weight: 700;
+    }
+
     /* 1층 출입구 */
     .preview-entrance {
       margin: 4px 16px 0;
@@ -990,37 +996,99 @@
       "캐럿":     { emoji: "💎", tag: "우리 이웃 캐럿" }
     };
 
-    // 이웃 케미 (두 멤버가 인접 시 발동, 순서 무관)
+    // ═══════════════════════════════════════════════════════════
+    // 이벤트 엔진 (6인 페르소나 회의 반영 / 자료: 유닛·부석순·믹스유닛 듀엣·고잉세븐틴 포맷)
+    //   데이터 = 규칙 테이블, 로직 = generateEvents(순수·결정적). 카테고리별 상한 + 티어 우선순위.
+    //   콘텐츠는 공개된 팬덤 사실(유닛/서브유닛/듀엣곡/자체예능) 기반의 밝고 긍정적 문구만.
+    // ═══════════════════════════════════════════════════════════
+
+    // 유닛/조합 전원 배치 시 (위치 무관). legendary=대형 달성.
+    const UNIT_EVENTS = [
+      { m: ["에스쿱스", "정한", "조슈아", "준", "호시", "원우", "우지", "디에잇", "민규", "도겸", "승관", "버논", "디노"],
+        text: "세븐틴 13명 완전체 입주! 이건 아파트가 아니라 전설 ⭐", legendary: true },
+      { m: ["호시", "도겸", "승관"], text: "부석순(BSS) 전원 입주! 아파트 예능 시청률 보장 ✨" },
+      { m: ["에스쿱스", "원우", "민규", "버논"], text: "힙합팀 집결! 지하 스튜디오 풀가동 🎧" },
+      { m: ["정한", "조슈아", "우지", "도겸", "승관"], text: "보컬팀 총출동! 아파트가 라이브홀이 됩니다 🎵" },
+      { m: ["준", "호시", "디에잇", "디노"], text: "퍼포먼스팀 집합! 옥상이 곧 안무 연습실 🕺" },
+      { m: ["호시", "우지"], text: "동갑내기 호시·우지 입주 — '동갑내기' 듀엣 각 👯" },
+      { m: ["버논", "디노"], text: "막내즈 버논·디노, 형들 몰래 밤샘 라면 파티 🐣" }
+    ];
+
+    // 이웃 케미 (두 멤버가 인접 시). 실제 유닛·믹스유닛 듀엣곡 레퍼런스 포함.
     const PAIR_EVENTS = [
-      { m: ["호시", "도겸"],   text: "부석순 라인 조짐! 이 층은 조용할 틈이 없겠어요 🔊" },
+      { m: ["호시", "우지"],   text: "호시·우지 옆집, '동갑내기' 합주가 시작됩니다 🎹" },
+      { m: ["정한", "원우"],   text: "정한·원우, '어젯밤' 감성으로 밤샘 토크 🌙" },
+      { m: ["에스쿱스", "민규"], text: "에스쿱스·민규, 'Pretty Woman' 코드로 옆집 인사 🕶️" },
+      { m: ["도겸", "승관"],   text: "도겸·승관 'Blue' 듀엣, 벽 너머 자장가 🎶" },
+      { m: ["호시", "도겸"],   text: "호시·도겸 옆집 = 부석순 라인, 조용할 틈이 없어요 🔊" },
       { m: ["호시", "승관"],   text: "호시·승관 옆집, 복도가 곧 무대가 됩니다 🎤" },
-      { m: ["도겸", "승관"],   text: "도겸·승관 듀엣, 벽 너머로 라이브가 들려와요 🎶" },
       { m: ["민규", "우지"],   text: "밤샘하는 우지에게 민규가 야식 배달 🍳🎧" },
-      { m: ["원우", "버논"],   text: "원우·버논, 밤새 게임과 음악 소리가 새어나와요 🎮" },
+      { m: ["원우", "버논"],   text: "원우·버논, 밤새 게임과 힙합 비트가 새어나와요 🎮" },
       { m: ["정한", "조슈아"], text: "정한·조슈아, 옆집끼리 알콩달콩 장난 😇🎸" },
       { m: ["준", "디에잇"],   text: "준·디에잇, 예술과 요리의 살롱이 열립니다 🍜🎨" },
-      { m: ["에스쿱스", "디노"], text: "리더와 막내가 이웃! 든든한 사제 라인 🦁🕺" },
-      { m: ["민규", "도겸"],   text: "민규 집밥 + 도겸 미소 = 이 층 분위기 담당 🌞" }
+      { m: ["에스쿱스", "디노"], text: "리더와 막내가 이웃! 든든한 사제 라인 🦁🕺" }
     ];
 
-    // 이웃이 하나라도 있으면 발동 (개인 특성)
+    // 이웃이 하나라도 있으면 발동 (개인 캐릭터). 멤버당 여러 변형 → 시드로 하나 선택.
     const SOLO_EVENTS = {
-      "우지": "옆집에서 밤새 비트가… 우지 작업실 가동 중 🎧",
-      "민규": "이웃집에 민규표 집밥 냄새가 솔솔 🍳",
-      "승관": "승관 사는 라인은 매일이 예능 현장 🎤",
-      "호시": "새벽마다 안무 연습 소리, 호시가 옆집이군요 🐯",
-      "정한": "정한의 장난 초인종에 오늘도 옆집이 당했다 😇"
+      "우지":   ["옆집에서 밤새 비트가… 우지 작업실 가동 중 🎧", "천재작곡가 우지, 오늘도 자컴 마감 중 🎼"],
+      "민규":   ["이웃집에 민규표 집밥 냄새가 솔솔 🍳", "민규가 선반 달다가 옆집 벽까지 뚫을 뻔 🔨"],
+      "승관":   ["승관 사는 라인은 매일이 예능 현장 🎤", "반상회 사회는 역시 승관, 리액션 폭발 🎙️"],
+      "호시":   ["새벽마다 안무 연습 소리, 호시가 옆집이군요 🐯", "텐션 담당 호시, 복도에서도 호랑해! 🐯"],
+      "정한":   ["정한의 장난 초인종에 오늘도 옆집이 당했다 😇", "게임에선 늘 살아남는 정한, 관리비도 잘 빠져나감 😏"],
+      "원우":   ["복도에서 마주쳐도 조용히 눈인사, 원우 스타일 📚", "게임하며 엘리베이터 기다리는 원우 발견 🎮"],
+      "조슈아": ["젠틀한 조슈아, 반상회 진행은 맡겨주세요 🎩"],
+      "도겸":   ["도겸 목소리에 옆집은 알람이 필요 없대요 🌞"],
+      "디에잇": ["디에잇 집 앞엔 늘 감성적인 화분이 놓여 있어요 🎨"],
+      "버논":   ["버논네 창문에서 흘러나오는 힙합 비트 🎧"],
+      "준":     ["준이 만든 마라탕 냄새가 복도 끝까지 🍲"],
+      "디노":   ["막내 디노, 반상회에서 동대표 자원 🔥"],
+      "에스쿱스": ["동대표는 역시 에스쿱스, 든든한 리더 🦁"]
     };
 
-    // 그룹 전원 배치 시 발동 (위치 무관)
-    const GROUP_EVENTS = [
-      { m: ["호시", "도겸", "승관"], text: "✨ 부석순(BSS) 전원 입주! 예능 시청률 보장" },
-      { m: ["에스쿱스", "원우", "민규", "버논"], text: "🎧 힙합팀 집결! 지하 스튜디오 풀가동" },
-      { m: ["정한", "조슈아", "우지", "도겸", "승관"], text: "🎵 보컬팀 총출동! 아파트 합창단 결성" },
-      { m: ["준", "호시", "디에잇", "디노"], text: "🕺 퍼포먼스팀 집합! 옥상이 연습실이 됩니다" }
+    // 위치(층) 기반
+    const POSITION_EVENTS = [
+      { when: (map) => [1, 2, 3].some(u => map["5-" + u]), text: "펜트하우스 라인 — 이 아파트 뷰 담당 🏙️" },
+      { when: (map) => [1, 2, 3].some(u => map["1-" + u]), text: "1층은 택배·손님이 가장 먼저 들르는 명당 🛎️" }
     ];
 
-    // 배치 결과 → 위치 기반 이벤트 목록 (우선순위: 그룹 > 이웃 케미 > 개인, 최대 5개)
+    // 고잉세븐틴 자체예능 포맷 이벤트 (일정 인원 이상 배치 시 시드로 하나)
+    const GOSE_EVENTS = [
+      "밤이 되자 아파트 방탈출 시작 — 살아서 1층까지! 🔑",
+      "관리비 몰아주기 '돈치기' 대회가 로비에서… 💰",
+      "어몽어스 현실판: 이 중 임포스터는 누구? 🕵️",
+      "이사 기념 TTT — 오늘 밤 옥상에서 다 같이 썰 푼다 🌟",
+      "복도 노래방 오픈! 마이크는 도겸이 독점 🎤"
+    ];
+
+    // 배치 → 시드(결정적). 같은 배치 = 같은 이야기, 다른 배치 = 다른 이야기.
+    function seedFromResults(results) {
+      let h = 2166136261;
+      results.forEach(r => {
+        const s = r.floor + "-" + r.unit + ":" + (r.resident || "");
+        for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+      });
+      return h >>> 0;
+    }
+    function mulberry32(a) {
+      return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function seededShuffle(arr, rng) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // 배치 결과 → 이벤트 목록. 반환: [{ text, legendary }] 최대 5개.
+    //   티어 우선순위: 레전드 > 유닛 > 고세 > 케미 > 위치 > 개인. 카테고리별 상한으로 다양성 확보.
     function generateEvents(results) {
       const placed = new Set(
         results.filter(r => r.resident && r.resident !== "공실").map(r => r.resident)
@@ -1030,7 +1098,7 @@
         if (r.resident && r.resident !== "공실") map[r.floor + "-" + r.unit] = r.resident;
       });
 
-      // 인접 쌍 수집: 같은 층 좌우 + 같은 라인 위아래
+      // 인접 쌍 + 이웃 보유 여부
       const adjPairs = new Set();
       const hasNeighbor = new Set();
       const connect = (a, b) => {
@@ -1047,15 +1115,54 @@
         }
       }
 
-      const events = [];
-      const seen = new Set();
-      const push = (t) => { if (t && !seen.has(t)) { seen.add(t); events.push(t); } };
+      const rng = mulberry32(seedFromResults(results));
+      const pool = []; // { text, tier, cat, legendary }
+      const seenText = new Set();
+      const add = (text, tier, cat, legendary) => {
+        if (!text || seenText.has(text)) return;
+        seenText.add(text);
+        pool.push({ text, tier, cat, legendary: !!legendary });
+      };
 
-      GROUP_EVENTS.forEach(g => { if (g.m.every(x => placed.has(x))) push(g.text); });
-      PAIR_EVENTS.forEach(p => { if (adjPairs.has([...p.m].sort().join("|"))) push(p.text); });
-      Object.keys(SOLO_EVENTS).forEach(m => { if (hasNeighbor.has(m)) push(SOLO_EVENTS[m]); });
+      // 유닛/조합 (전원 배치)
+      UNIT_EVENTS.forEach(u => {
+        if (u.m.every(x => placed.has(x))) add(u.text, u.legendary ? 0 : 1, "unit", u.legendary);
+      });
+      // 3개 유닛 모두 완성 → 레전드
+      const HIPHOP = ["에스쿱스", "원우", "민규", "버논"];
+      const VOCAL = ["정한", "조슈아", "우지", "도겸", "승관"];
+      const PERF = ["준", "호시", "디에잇", "디노"];
+      if (HIPHOP.every(x => placed.has(x)) && VOCAL.every(x => placed.has(x)) && PERF.every(x => placed.has(x))) {
+        add("3개 유닛 전부 입주 — 완전체 아파트 달성! ⭐", 0, "unit", true);
+      }
+      // 고세 예능 (6명 이상)
+      if (placed.size >= 6) {
+        add(seededShuffle(GOSE_EVENTS, rng)[0], 2, "gose", false);
+      }
+      // 이웃 케미
+      PAIR_EVENTS.forEach(p => {
+        if (adjPairs.has([...p.m].sort().join("|"))) add(p.text, 3, "pair", false);
+      });
+      // 위치
+      POSITION_EVENTS.forEach(p => { if (p.when(map)) add(p.text, 4, "position", false); });
+      // 개인 (이웃 있으면) — 변형 중 시드로 하나
+      Object.keys(SOLO_EVENTS).forEach(m => {
+        if (hasNeighbor.has(m)) add(seededShuffle(SOLO_EVENTS[m], rng)[0], 5, "solo", false);
+      });
 
-      return events.slice(0, 5);
+      // 카테고리별 상한 (다양성) + 티어 우선순위 + 시드 셔플로 동점 처리
+      const caps = { unit: 3, gose: 1, pair: 2, position: 1, solo: 2 };
+      const used = {};
+      const chosen = seededShuffle(pool, rng)
+        .sort((a, b) => a.tier - b.tier)
+        .filter(e => {
+          if (e.legendary) return true; // 레전드는 상한 무시
+          used[e.cat] = (used[e.cat] || 0) + 1;
+          return used[e.cat] <= (caps[e.cat] || 1);
+        })
+        .slice(0, 5);
+
+      return chosen.map(e => ({ text: e.text, legendary: e.legendary }));
     }
 
     function renderPreview(results) {
@@ -1181,7 +1288,7 @@
         if (evs.length) {
           evEl.style.display = "block";
           evEl.innerHTML = '<div class="preview-events-title">🎬 우리 아파트 이야기</div>'
-            + evs.map(t => `<div class="preview-event-item">· ${t}</div>`).join("");
+            + evs.map(e => `<div class="preview-event-item${e.legendary ? " legend" : ""}">· ${e.text}</div>`).join("");
         } else {
           evEl.style.display = "none";
           evEl.innerHTML = "";
