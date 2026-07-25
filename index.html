@@ -358,6 +358,34 @@
       border-color: transparent;
     }
 
+    /* 유형 진단 히어로 (결과 판정) */
+    .preview-verdict {
+      margin: 4px 16px 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background:
+        radial-gradient(120% 100% at 0% 0%, rgba(247, 202, 201, 0.18), transparent 60%),
+        radial-gradient(120% 100% at 100% 100%, rgba(146, 168, 209, 0.20), transparent 60%),
+        var(--pv-unit);
+      border: 1px solid var(--pv-border);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      text-align: center;
+    }
+    .verdict-kicker { font-size: 11px; font-weight: 700; color: #a9abb8; letter-spacing: .04em; }
+    .verdict-type {
+      font-size: 20px; font-weight: 800; margin-top: 3px; line-height: 1.25;
+      color: #fff;
+    }
+    .verdict-desc { font-size: 12.5px; color: #d7d8e0; margin-top: 5px; line-height: 1.4; }
+    .verdict-score {
+      display: inline-flex; align-items: baseline; gap: 4px;
+      margin-top: 10px; padding: 4px 14px; border-radius: 999px;
+      background: linear-gradient(135deg, var(--rose), var(--serenity));
+      color: #1a1a1a; font-weight: 800;
+    }
+    .verdict-score b { font-size: 19px; }
+    .verdict-score span { font-size: 11px; font-weight: 700; }
+
     .preview-floor {
       margin: 0 16px 10px;
       position: relative;
@@ -903,6 +931,7 @@
       <div class="preview-rooftop">🏢 SVT APARTMENT <span>💎</span></div>
       <div class="preview-title" id="previewTitle">우리 아파트 입주 현황</div>
       <div class="preview-date" id="previewDate"></div>
+      <div class="preview-verdict" id="previewVerdict" style="display:none;"></div>
       <div class="preview-stats" id="previewStats"></div>
       <div id="previewContent"></div>
       <div id="previewEvents" class="preview-events" style="display:none;"></div>
@@ -1436,6 +1465,78 @@
       return chosen.map(e => ({ text: e.text, desc: e.desc, members: e.members || [], legendary: e.legendary }));
     }
 
+    // 배치 → 아파트 '유형' + 케미 지수 판정 (결과 히어로/공유 문구용).
+    //   세븐틴 3유닛(힙합/보컬/퍼포)·캐럿 이웃·입주율·발생 이벤트 수를 종합.
+    const SVT_UNITS = {
+      힙합팀: ["에스쿱스", "원우", "민규", "버논"],
+      보컬팀: ["정한", "조슈아", "우지", "도겸", "승관"],
+      퍼포먼스팀: ["호시", "준", "디에잇", "디노"]
+    };
+    function diagnoseApartment(results, events) {
+      const map = {};
+      results.forEach(r => { if (r.resident && r.resident !== "공실") map[r.floor + "-" + r.unit] = r.resident; });
+      const placed = Object.values(map);
+      const occ = placed.length;
+
+      // 인접 쌍 수집(무방향) + 유닛별 인접 케미 카운트 + 캐럿 이웃 수
+      const unitOf = (m) => Object.keys(SVT_UNITS).find(u => SVT_UNITS[u].includes(m));
+      const unitAdj = { 힙합팀: 0, 보컬팀: 0, 퍼포먼스팀: 0 };
+      let adjTotal = 0, caratNeighbors = 0;
+      const seen = new Set();
+      for (let f = 1; f <= FLOORS; f++) {
+        for (let u = 1; u <= 3; u++) {
+          const a = map[f + "-" + u];
+          if (!a) continue;
+          const nbs = [];
+          if (u < 3) nbs.push(map[f + "-" + (u + 1)]);
+          if (f < FLOORS) nbs.push(map[(f + 1) + "-" + u]);
+          nbs.forEach(b => {
+            if (!b) return;
+            const key = [a, b].sort().join("|");
+            if (seen.has(key)) return;
+            seen.add(key);
+            adjTotal++;
+            if (a === "캐럿" || b === "캐럿") caratNeighbors++;
+            const ua = unitOf(a), ub = unitOf(b);
+            if (ua && ua === ub) unitAdj[ua]++;
+          });
+        }
+      }
+
+      // 케미 지수 (재미용으로 후하게: 대개 70~99)
+      let score = 45
+        + Math.min(events.length, 5) * 6   // 이벤트 풍부함 +30
+        + Math.min(adjTotal, 8) * 2.5       // 이웃 상호작용 +20
+        + Math.round((occ / 14) * 8)        // 입주율 +8
+        + (caratNeighbors > 0 ? 6 : 0);     // 캐럿이 이웃과 붙음
+      score = Math.max(55, Math.min(99, Math.round(score)));
+
+      // 유형 판정 (배치 신호 기반, 우선순위 순)
+      const topUnit = Object.keys(unitAdj).sort((x, y) => unitAdj[y] - unitAdj[x])[0];
+      const topUnitVal = unitAdj[topUnit];
+      const caratIn = placed.includes("캐럿");
+
+      let type;
+      if (caratIn && caratNeighbors >= 2) {
+        type = { emoji: "💎", name: "인싸 캐럿 하우스", desc: "최애들이 양옆에! 세상 부러운 이웃운을 타고난 집." };
+      } else if (occ >= 12) {
+        type = { emoji: "🎬", name: "종합 예능 하우스", desc: "매일이 고잉세븐틴, 웃음이 끊길 틈 없는 아파트." };
+      } else if (topUnitVal >= 2 && topUnit === "힙합팀") {
+        type = { emoji: "🎤", name: "심야 사이퍼 하우스", desc: "밤마다 비트가 흐르는 힙합 성지." };
+      } else if (topUnitVal >= 2 && topUnit === "보컬팀") {
+        type = { emoji: "🎧", name: "복도 라이브홀 하우스", desc: "화음이 새어나오는 감성 충만 아파트." };
+      } else if (topUnitVal >= 2 && topUnit === "퍼포먼스팀") {
+        type = { emoji: "🕺", name: "24시 연습실 하우스", desc: "거울 앞 불이 꺼지지 않는 열정의 집." };
+      } else if (adjTotal >= 4) {
+        type = { emoji: "💕", name: "알콩달콩 케미 하우스", desc: "옆집끼리 티격태격, 정 넘치는 우리 아파트." };
+      } else if (occ <= 5) {
+        type = { emoji: "🌙", name: "미니멀 고요 하우스", desc: "조용하고 아늑한, 나만 아는 프라이빗 아파트." };
+      } else {
+        type = { emoji: "🏢", name: "평화로운 이웃 하우스", desc: "무난하고 따뜻한 동네 인심의 아파트." };
+      }
+      return { type, score };
+    }
+
     // ── 조건별 모션 팝업 (data/events.js 의 motions) ──
     function residentMapOf(results) {
       const m = {};
@@ -1669,9 +1770,29 @@
 
       // 위치 기반 이웃 이벤트 렌더
       const evEl = document.getElementById("previewEvents");
+      const evs = generateEvents(results);
+      lastEvents = evs; // 공유 문구에 랜덤 1개 넣기 위해 보관
+
+      // 유형 진단 히어로 (결과 판정 + 케미 지수)
+      const verdictEl = document.getElementById("previewVerdict");
+      if (verdictEl) {
+        const occNow = results.filter(r => r.resident && r.resident !== "공실").length;
+        if (occNow >= 1) {
+          const d = diagnoseApartment(results, evs);
+          lastVerdict = d;
+          verdictEl.style.display = "block";
+          verdictEl.innerHTML =
+            `<div class="verdict-kicker">우리 아파트 유형은?</div>`
+            + `<div class="verdict-type">${d.type.emoji} ${d.type.name}</div>`
+            + `<div class="verdict-desc">${d.type.desc}</div>`
+            + `<div class="verdict-score">케미 지수 <b>${d.score}</b><span>/ 100</span></div>`;
+        } else {
+          verdictEl.style.display = "none";
+          lastVerdict = null;
+        }
+      }
+
       if (evEl) {
-        const evs = generateEvents(results);
-        lastEvents = evs; // 공유 문구에 랜덤 1개 넣기 위해 보관
         if (evs.length) {
           evEl.style.display = "block";
           evEl.innerHTML = '<div class="preview-events-title">🎬 우리 아파트 이야기</div>'
@@ -1693,6 +1814,7 @@
     // ── 플랫폼별 공유 포맷 (해시태그 + 랜덤 이벤트 1개 포함) ──────────────
     const PLAY_URL = "https://alfira0526.github.io/SVT_Mansion/";
     let lastEvents = []; // 마지막 생성 이벤트 (공유 문구에 랜덤 1개 넣음)
+    let lastVerdict = null; // 마지막 유형 진단 (공유 문구에 넣음)
 
     const PLATFORM_TAGS = {
       twitter:   "#세븐틴 #SEVENTEEN #세븐틴아파트 #SVT_Mansion",
@@ -1711,9 +1833,12 @@
       const title = nick
         ? `${nick}${subjectParticle(nick)} 세븐틴 아파트에 입주했다! 🏢💎`
         : "세븐틴이 한 아파트에 산다면? 🏢💎";
+      const vLine = lastVerdict
+        ? `\n\n${lastVerdict.type.emoji} 우리 아파트 유형: ${lastVerdict.type.name} · 케미 지수 ${lastVerdict.score}/100`
+        : "";
       const ev = pickRandomEvent();
-      const evLine = ev ? `\n\n🎬 ${ev.text}` : "";
-      return `${title}${evLine}\n\n${PLATFORM_TAGS[platform] || ""}\n${PLAY_URL}`;
+      const evLine = ev ? `\n🎬 ${ev.text}` : "";
+      return `${title}${vLine}${evLine}\n\n${PLATFORM_TAGS[platform] || ""}\n${PLAY_URL}`;
     }
 
     function shareFileName(ratio) {
