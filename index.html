@@ -358,10 +358,10 @@
       border-color: transparent;
     }
 
-    /* 유형 진단 히어로 (결과 판정) */
+    /* 🏠 나의 이웃 히어로 (북극성 A) */
     .preview-verdict {
       margin: 4px 16px 12px;
-      padding: 14px 16px;
+      padding: 14px 16px 16px;
       border-radius: 16px;
       background:
         radial-gradient(120% 100% at 0% 0%, rgba(247, 202, 201, 0.18), transparent 60%),
@@ -371,24 +371,31 @@
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
       text-align: center;
     }
-    .verdict-kicker { font-size: 11px; font-weight: 700; color: #a9abb8; letter-spacing: .04em; }
-    .verdict-type {
-      font-size: 20px; font-weight: 800; margin-top: 3px; line-height: 1.25;
-      color: #fff;
+    .myhood-kicker { font-size: 14px; font-weight: 800; color: #fff; letter-spacing: .01em; }
+    .myhood-empty { margin-top: 8px; font-size: 13px; color: #d7d8e0; line-height: 1.5; }
+    .myhood-empty b { color: #f7cac9; }
+    .myhood-row {
+      display: flex; justify-content: center; gap: 10px; margin-top: 12px; flex-wrap: wrap;
     }
-    .verdict-desc { font-size: 12.5px; color: #d7d8e0; margin-top: 5px; line-height: 1.4; }
-    .verdict-score {
-      display: inline-flex; align-items: baseline; gap: 4px;
-      margin-top: 10px; padding: 4px 14px; border-radius: 999px;
+    .myhood-card {
+      display: flex; flex-direction: column; align-items: center;
+      width: 88px;
+    }
+    .myhood-rel {
+      font-size: 10.5px; font-weight: 800; color: #1a1a1a;
       background: linear-gradient(135deg, var(--rose), var(--serenity));
-      color: #1a1a1a; font-weight: 800;
+      padding: 2px 8px; border-radius: 999px; margin-bottom: 6px; white-space: nowrap;
     }
-    .verdict-score b { font-size: 19px; }
-    .verdict-score span { font-size: 11px; font-weight: 700; }
-    .verdict-record { display: block; margin-top: 8px; font-size: 12px; font-weight: 700; color: #f7cac9; }
-    .verdict-record.new { color: #ffd873; }
+    .myhood-ava {
+      width: 62px; height: 62px; border-radius: 16px;
+      background-size: cover; background-position: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.14);
+    }
+    .myhood-ava.none { display: flex; align-items: center; justify-content: center; font-size: 26px; background: var(--pv-bg); }
+    .myhood-name { margin-top: 6px; font-size: 12.5px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .myhood-tag { margin-top: 2px; font-size: 10.5px; color: #b7b9c4; }
 
-    /* 배치 중 실시간 케미 힌트 */
+    /* 배치 중 실시간 이웃 힌트 */
     .live-hint {
       margin: 2px 0 14px;
       padding: 10px 14px;
@@ -398,22 +405,9 @@
         var(--surface, #2c2d37);
       border: 1px solid var(--border, #43454f);
     }
-    .live-hint-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
-    .live-hint-score { font-size: 14px; font-weight: 800; color: #fff; }
-    .live-hint-score b { color: #f7cac9; font-size: 16px; }
-    .live-hint-ev { font-size: 12px; font-weight: 700; color: #c9cad3; }
+    .live-hint-head { font-size: 13.5px; font-weight: 800; color: #fff; line-height: 1.35; }
+    .live-hint-head b { color: #f7cac9; }
     .live-hint-tip { margin-top: 5px; font-size: 12px; color: #b7b9c4; }
-
-    /* 다른 조합 도전 (리롤) 버튼 */
-    .reroll-btn {
-      display: block; width: 100%; margin: 14px 0 0;
-      padding: 13px; border: none; border-radius: 12px; cursor: pointer;
-      font-size: 15px; font-weight: 800; color: #1a1a1a;
-      background: linear-gradient(135deg, var(--rose), var(--serenity));
-      box-shadow: 0 4px 14px rgba(146, 168, 209, 0.3);
-    }
-    .reroll-btn:hover { filter: brightness(1.05); }
-    .reroll-btn:active { transform: translateY(1px); }
 
     .preview-floor {
       margin: 0 16px 10px;
@@ -934,13 +928,13 @@
 </head>
 <body>
   <div class="wrapper">
-    <h1>💎세븐틴이 한 아파트에 산다면?!</h1>
+    <h1>🏠 세븐틴이 내 이웃이라면?!</h1>
     <p class="desc">
-      각 집에 멤버들을 한 명씩 배치해 주세요! 같은 멤버는 한 번만 배치할 수 있습니다.<br>
-      고민되면 <strong>🎲 랜덤 배치</strong>로 한 번에 채울 수 있어요. (나는 안 넣을 경우 공실을 두 개 두면 됩니다.)<br>
-      배치를 마친 뒤 <strong>이사하기</strong>를 누르면 아래에 입주 현황 미리보기가 생성됩니다!<br>
-      <strong>이미지로 저장</strong>하거나 <strong>🐦 트위터 · 💬 카카오톡 · 📸 인스타 스토리</strong>로 공유해 보세요 (해시태그·이벤트 문구 자동 포함). 배치는 자동 저장됩니다.<br>
-      닉네임을 넣으면 결과 카드가 <strong>"OO이 세븐틴 아파트에 입주했다"</strong>로 바뀌고, <strong>4:5</strong> 비율로도 저장할 수 있어요.
+      <strong>제일 먼저 '나(캐럿)'를 한 칸에 넣어보세요.</strong> 그 순간 <strong>내 옆집·윗집·아랫집</strong>에 누굴 둘지가 이 게임의 핵심이에요! 나머지 멤버도 각 집에 한 명씩 배치해 주세요. (같은 멤버는 한 번만)<br>
+      고민되면 <strong>🎲 랜덤 배치</strong>로 한 번에 채울 수 있어요.<br>
+      배치를 마친 뒤 <strong>이사하기</strong>를 누르면 <strong>🏠 나의 이웃</strong>과 우리 동네에서 벌어지는 이야기가 만들어집니다!<br>
+      <strong>이미지로 저장</strong>하거나 <strong>🐦 트위터 · 💬 카카오톡 · 📸 인스타 스토리</strong>로 공유해 보세요. 배치는 자동 저장됩니다.<br>
+      닉네임을 넣으면 결과 카드가 <strong>"OO(캐럿)의 이웃"</strong>으로 바뀌어요. <strong>4:5</strong> 비율 저장도 가능.
     </p>
 
     <div class="nick-row">
@@ -970,9 +964,6 @@
       <div class="preview-footer">#세븐틴아파트 · #SVT_Mansion</div>
       <div class="preview-brand">💎 SVT MANSION</div>
     </div>
-
-    <!-- 리플레이 훅: 다른 조합으로 즉시 재도전 (캡처 영역 밖) -->
-    <button id="rerollBtn" type="button" class="reroll-btn" style="display:none;">🎲 다른 조합으로 다시 도전!</button>
 
     <!-- 저장·공유 바 (결과 카드 하단) -->
     <div id="shareBar" class="share-bar" style="display:none;">
@@ -1105,8 +1096,6 @@
       // 미리보기/공유 버튼 숨김
       document.getElementById("previewContainer").style.display = "none";
       shareBar.style.display = "none";
-      const rr = document.getElementById("rerollBtn");
-      if (rr) rr.style.display = "none";
       showToast("전체 배치를 초기화했어요.");
     }
 
@@ -1503,101 +1492,64 @@
       return chosen.map(e => ({ text: e.text, desc: e.desc, members: e.members || [], legendary: e.legendary }));
     }
 
-    // 배치 → 아파트 '유형' + 케미 지수 판정 (결과 히어로/공유 문구용).
-    //   세븐틴 3유닛(힙합/보컬/퍼포)·캐럿 이웃·입주율·발생 이벤트 수를 종합.
-    const SVT_UNITS = {
-      힙합팀: ["에스쿱스", "원우", "민규", "버논"],
-      보컬팀: ["정한", "조슈아", "우지", "도겸", "승관"],
-      퍼포먼스팀: ["호시", "준", "디에잇", "디노"]
-    };
-    function diagnoseApartment(results, events) {
+    // 북극성 A "세븐틴이 내 이웃이라면" — 나(캐럿)의 옆집·윗집·아랫집이 누구인지 산출.
+    //   결과 히어로/실시간 힌트/공유 문구의 주인공. 방향은 호수 기준(작은 호수=왼쪽, 위층=윗집).
+    function myNeighbors(results) {
       const map = {};
       results.forEach(r => { if (r.resident && r.resident !== "공실") map[r.floor + "-" + r.unit] = r.resident; });
-      const placed = Object.values(map);
-      const occ = placed.length;
+      // 캐럿 위치 찾기
+      let cf = null, cu = null;
+      results.forEach(r => { if (r.resident === "캐럿") { cf = r.floor; cu = r.unit; } });
+      if (cf === null) return { placed: false, unit: null, neighbors: [] };
 
-      // 인접 쌍 수집(무방향) + 유닛별 인접 케미 카운트 + 캐럿 이웃 수
-      const unitOf = (m) => Object.keys(SVT_UNITS).find(u => SVT_UNITS[u].includes(m));
-      const unitAdj = { 힙합팀: 0, 보컬팀: 0, 퍼포먼스팀: 0 };
-      let adjTotal = 0, caratNeighbors = 0;
-      const seen = new Set();
-      for (let f = 1; f <= FLOORS; f++) {
-        for (let u = 1; u <= 3; u++) {
-          const a = map[f + "-" + u];
-          if (!a) continue;
-          const nbs = [];
-          if (u < 3) nbs.push(map[f + "-" + (u + 1)]);
-          if (f < FLOORS) nbs.push(map[(f + 1) + "-" + u]);
-          nbs.forEach(b => {
-            if (!b) return;
-            const key = [a, b].sort().join("|");
-            if (seen.has(key)) return;
-            seen.add(key);
-            adjTotal++;
-            if (a === "캐럿" || b === "캐럿") caratNeighbors++;
-            const ua = unitOf(a), ub = unitOf(b);
-            if (ua && ua === ub) unitAdj[ua]++;
-          });
-        }
-      }
-
-      // 케미 지수 (재미용으로 후하게: 대개 70~99)
-      let score = 45
-        + Math.min(events.length, 5) * 6   // 이벤트 풍부함 +30
-        + Math.min(adjTotal, 8) * 2.5       // 이웃 상호작용 +20
-        + Math.round((occ / 14) * 8)        // 입주율 +8
-        + (caratNeighbors > 0 ? 6 : 0);     // 캐럿이 이웃과 붙음
-      score = Math.max(55, Math.min(99, Math.round(score)));
-
-      // 유형 판정 (배치 신호 기반, 우선순위 순)
-      const topUnit = Object.keys(unitAdj).sort((x, y) => unitAdj[y] - unitAdj[x])[0];
-      const topUnitVal = unitAdj[topUnit];
-      const caratIn = placed.includes("캐럿");
-
-      let type;
-      if (caratIn && caratNeighbors >= 2) {
-        type = { emoji: "💎", name: "인싸 캐럿 하우스", desc: "최애들이 양옆에! 세상 부러운 이웃운을 타고난 집." };
-      } else if (occ >= 12) {
-        type = { emoji: "🎬", name: "종합 예능 하우스", desc: "매일이 고잉세븐틴, 웃음이 끊길 틈 없는 아파트." };
-      } else if (topUnitVal >= 2 && topUnit === "힙합팀") {
-        type = { emoji: "🎤", name: "심야 사이퍼 하우스", desc: "밤마다 비트가 흐르는 힙합 성지." };
-      } else if (topUnitVal >= 2 && topUnit === "보컬팀") {
-        type = { emoji: "🎧", name: "복도 라이브홀 하우스", desc: "화음이 새어나오는 감성 충만 아파트." };
-      } else if (topUnitVal >= 2 && topUnit === "퍼포먼스팀") {
-        type = { emoji: "🕺", name: "24시 연습실 하우스", desc: "거울 앞 불이 꺼지지 않는 열정의 집." };
-      } else if (adjTotal >= 4) {
-        type = { emoji: "💕", name: "알콩달콩 케미 하우스", desc: "옆집끼리 티격태격, 정 넘치는 우리 아파트." };
-      } else if (occ <= 5) {
-        type = { emoji: "🌙", name: "미니멀 고요 하우스", desc: "조용하고 아늑한, 나만 아는 프라이빗 아파트." };
-      } else {
-        type = { emoji: "🏢", name: "평화로운 이웃 하우스", desc: "무난하고 따뜻한 동네 인심의 아파트." };
-      }
-      return { type, score, occ, adjTotal, caratNeighbors, caratIn, eventCount: events.length };
+      const rel = [
+        { key: "왼쪽 옆집", f: cf, u: cu - 1 },
+        { key: "오른쪽 옆집", f: cf, u: cu + 1 },
+        { key: "윗집", f: cf + 1, u: cu },
+        { key: "아랫집", f: cf - 1, u: cu }
+      ];
+      const neighbors = [];
+      rel.forEach(rl => {
+        if (rl.f < 1 || rl.f > FLOORS || rl.u < 1 || rl.u > 3) return; // 건물 밖
+        const id = map[rl.f + "-" + rl.u];
+        if (!id || id === "캐럿") return;
+        const meta = residents.find(r => r.id === id);
+        const trait = TRAITS[id] || {};
+        neighbors.push({
+          relation: rl.key, id,
+          label: meta ? meta.label : id,
+          img: meta ? meta.img : "",
+          emoji: trait.emoji || "", tag: trait.tag || ""
+        });
+      });
+      return { placed: true, unit: cf + String(cu).padStart(2, "0"), neighbors };
     }
 
-    // 배치 중 실시간 케미 힌트 (이사하기 전 기대감 형성). #liveHint 갱신.
+    // 배치 중 실시간 힌트 — '내 이웃'이 만들어지는 과정을 즉시 보여줌 (A: 나 중심).
     function updateLiveHint() {
       const el = document.getElementById("liveHint");
       if (!el) return;
       const results = collectResults();
       const occ = results.filter(r => r.resident && r.resident !== "공실").length;
       if (occ < 1) { el.style.display = "none"; return; }
-      const evs = generateEvents(results);
-      const d = diagnoseApartment(results, evs);
 
-      let tip;
-      if (d.adjTotal === 0) tip = "💡 멤버를 옆·위·아래로 붙이면 케미가 터져요!";
-      else if (d.caratIn && d.caratNeighbors === 0) tip = "💡 캐럿(나)을 최애 옆에 두면 이웃운 UP!";
-      else if (d.eventCount < 3) tip = "💡 유닛(힙합·보컬·퍼포)끼리 모으면 조합 이벤트 발동!";
-      else tip = "🔥 케미 폭발 직전! '이사하기'로 결과를 확인하세요";
-
+      const hood = myNeighbors(results);
+      let head, tip;
+      if (!hood.placed) {
+        head = `🏠 아직 '나(캐럿)'가 입주하지 않았어요`;
+        tip = "💡 나(캐럿)를 배치하면 '내 이웃'이 만들어져요!";
+      } else if (hood.neighbors.length === 0) {
+        head = `🏠 ${hood.unit}호에 입주 완료 · 옆집은 아직 비어있어요`;
+        tip = "💡 최애를 내 옆·위·아래에 배치하면 이웃이 생겨요!";
+      } else {
+        const list = hood.neighbors.map(n => `${n.relation} <b>${n.label}</b>`).join(" · ");
+        head = `🏠 내 이웃: ${list}`;
+        tip = hood.neighbors.length >= 3
+          ? "🎉 이웃 복도가 꽉 찼어요! '이사하기'로 이야기를 확인하세요"
+          : "💡 옆·위·아래를 더 채우면 이웃이 늘어나요";
+      }
       el.style.display = "block";
-      el.innerHTML =
-        `<div class="live-hint-row">`
-        + `<span class="live-hint-score">🔥 실시간 케미 <b>${d.score}</b></span>`
-        + `<span class="live-hint-ev">발동 예정 이벤트 ${d.eventCount}개</span>`
-        + `</div>`
-        + `<div class="live-hint-tip">${tip}</div>`;
+      el.innerHTML = `<div class="live-hint-head">${head}</div><div class="live-hint-tip">${tip}</div>`;
     }
 
     // ── 조건별 모션 팝업 (data/events.js 의 motions) ──
@@ -1726,8 +1678,6 @@
         container.style.display = "block";
         content.innerHTML = "<p class='preview-empty'>아직 배치된 멤버가 없습니다.</p>";
         shareBar.style.display = "none";
-        const rr0 = document.getElementById("rerollBtn");
-        if (rr0) rr0.style.display = "none";
         return;
       }
 
@@ -1838,33 +1788,37 @@
       const evs = generateEvents(results);
       lastEvents = evs; // 공유 문구에 랜덤 1개 넣기 위해 보관
 
-      // 유형 진단 히어로 (결과 판정 + 케미 지수)
+      // 🏠 나의 이웃 히어로 (북극성 A: 내 옆집·윗집·아랫집이 누구인가)
       const verdictEl = document.getElementById("previewVerdict");
       if (verdictEl) {
-        const occNow = results.filter(r => r.resident && r.resident !== "공실").length;
-        if (occNow >= 1) {
-          const d = diagnoseApartment(results, evs);
-          lastVerdict = d;
+        const hood = myNeighbors(results);
+        lastHood = hood;
+        const nick = (nickInput.value || "").trim();
+        const who = nick ? `${nick}(캐럿)` : "나(캐럿)";
 
-          // 최고 케미 지수 기록 (리플레이 훅)
-          let best = 0;
-          try { best = Number(localStorage.getItem("svt_best_score")) || 0; } catch (e) {}
-          const isRecord = d.score > best;
-          if (isRecord) { best = d.score; try { localStorage.setItem("svt_best_score", String(best)); } catch (e) {} }
-          const recordLine = isRecord
-            ? `<div class="verdict-record new">🎉 최고 기록 갱신! (${best}점)</div>`
-            : `<div class="verdict-record">🏆 내 최고 케미 지수 ${best}점</div>`;
-
+        if (!hood.placed) {
           verdictEl.style.display = "block";
           verdictEl.innerHTML =
-            `<div class="verdict-kicker">우리 아파트 유형은?</div>`
-            + `<div class="verdict-type">${d.type.emoji} ${d.type.name}</div>`
-            + `<div class="verdict-desc">${d.type.desc}</div>`
-            + `<div class="verdict-score">케미 지수 <b>${d.score}</b><span>/ 100</span></div>`
-            + recordLine;
+            `<div class="myhood-kicker">🏠 나의 이웃</div>`
+            + `<div class="myhood-empty">아직 <b>나(캐럿)</b>가 입주하지 않았어요.<br>한 칸에 '나'를 넣으면 <b>내 옆집·윗집·아랫집</b>이 만들어져요!</div>`;
+        } else if (hood.neighbors.length === 0) {
+          verdictEl.style.display = "block";
+          verdictEl.innerHTML =
+            `<div class="myhood-kicker">🏠 ${who}의 이웃 — ${hood.unit}호</div>`
+            + `<div class="myhood-empty">옆집이 아직 비어있어요.<br>최애를 <b>내 옆·위·아래</b>에 배치하면 이웃이 생겨요 🫶</div>`;
         } else {
-          verdictEl.style.display = "none";
-          lastVerdict = null;
+          verdictEl.style.display = "block";
+          const cards = hood.neighbors.map(n =>
+            `<div class="myhood-card">`
+            + `<div class="myhood-rel">${n.relation}</div>`
+            + (n.img ? `<div class="myhood-ava" style="background-image:url(${n.img})"></div>` : `<div class="myhood-ava none">💎</div>`)
+            + `<div class="myhood-name">${n.emoji ? n.emoji + " " : ""}${n.label}</div>`
+            + (n.tag ? `<div class="myhood-tag">${n.tag}</div>` : "")
+            + `</div>`
+          ).join("");
+          verdictEl.innerHTML =
+            `<div class="myhood-kicker">🏠 ${who}의 이웃 — ${hood.unit}호</div>`
+            + `<div class="myhood-row">${cards}</div>`;
         }
       }
 
@@ -1882,17 +1836,15 @@
         }
       }
 
-      // 미리보기가 있을 때만 저장/공유 버튼 + 비율 토글 + 리롤 버튼 노출
+      // 미리보기가 있을 때만 저장/공유 버튼 + 비율 토글 노출
       shareBar.style.display = "block";
-      const rr = document.getElementById("rerollBtn");
-      if (rr) rr.style.display = "block";
     }
 
     // 공유/저장 공통 문구
     // ── 플랫폼별 공유 포맷 (해시태그 + 랜덤 이벤트 1개 포함) ──────────────
     const PLAY_URL = "https://alfira0526.github.io/SVT_Mansion/";
     let lastEvents = []; // 마지막 생성 이벤트 (공유 문구에 랜덤 1개 넣음)
-    let lastVerdict = null; // 마지막 유형 진단 (공유 문구에 넣음)
+    let lastHood = null; // 마지막 '나의 이웃' (공유 문구에 넣음)
 
     const PLATFORM_TAGS = {
       twitter:   "#세븐틴 #SEVENTEEN #세븐틴아파트 #SVT_Mansion",
@@ -1908,15 +1860,18 @@
 
     function buildShareText(platform) {
       const nick = (nickInput.value || "").trim();
-      const title = nick
-        ? `${nick}${subjectParticle(nick)} 세븐틴 아파트에 입주했다! 🏢💎`
-        : "세븐틴이 한 아파트에 산다면? 🏢💎";
-      const vLine = lastVerdict
-        ? `\n\n${lastVerdict.type.emoji} 우리 아파트 유형: ${lastVerdict.type.name} · 케미 지수 ${lastVerdict.score}/100`
-        : "";
+      // 북극성 A: '내 이웃이 누구인지'를 헤드라인으로
+      let title;
+      if (lastHood && lastHood.placed && lastHood.neighbors.length) {
+        title = `내 이웃은 ${lastHood.neighbors.map(n => n.label).join("·")}! 🏠 세븐틴 아파트 사는 중`;
+      } else {
+        title = nick
+          ? `${nick}${subjectParticle(nick)} 세븐틴 아파트에 입주했다! 🏠`
+          : "세븐틴이 내 이웃이라면? 🏠";
+      }
       const ev = pickRandomEvent();
-      const evLine = ev ? `\n🎬 ${ev.text}` : "";
-      return `${title}${vLine}${evLine}\n\n${PLATFORM_TAGS[platform] || ""}\n${PLAY_URL}`;
+      const evLine = ev ? `\n\n🎬 ${ev.text}` : "";
+      return `${title}${evLine}\n\n${PLATFORM_TAGS[platform] || ""}\n${PLAY_URL}`;
     }
 
     function shareFileName(ratio) {
@@ -2166,14 +2121,6 @@
     document.getElementById("randomBtn").addEventListener("click", randomAssign);
     document.getElementById("clearBtn").addEventListener("click", clearAll);
 
-    // 🎲 다른 조합 도전: 무작위 재배치 + 즉시 결과 갱신(시트 전송·스로틀 없음) → 리플레이 루프
-    document.getElementById("rerollBtn").addEventListener("click", () => {
-      randomAssign();
-      const results = collectResults();
-      renderPreview(results);
-      openEventSequence(lastEvents);
-      document.getElementById("previewContainer").scrollIntoView({ behavior: "smooth", block: "start" });
-    });
     downloadBtn.addEventListener("click", downloadPreviewAsImage);
     shareBtns.forEach(b => b.addEventListener("click", () => shareTo(b.dataset.platform)));
 
