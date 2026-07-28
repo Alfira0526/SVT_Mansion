@@ -394,6 +394,10 @@
     .myhood-ava.none { display: flex; align-items: center; justify-content: center; font-size: 26px; background: var(--pv-bg); }
     .myhood-name { margin-top: 6px; font-size: 12.5px; font-weight: 700; color: #fff; line-height: 1.2; }
     .myhood-tag { margin-top: 2px; font-size: 10.5px; color: #b7b9c4; }
+    .myhood-comment {
+      margin-top: 13px; padding-top: 11px; border-top: 1px dashed var(--pv-border);
+      font-size: 13px; font-weight: 700; color: #f7cac9; line-height: 1.4;
+    }
 
     /* 배치 중 실시간 이웃 힌트 */
     .live-hint {
@@ -544,6 +548,10 @@
       font-weight: 700;
     }
     .preview-event-item.legend .ev-desc { color: #d9b98a; }
+
+    /* ② 내 이웃이 등장하는 사건 강조 */
+    .preview-event-item.mine .ev-line { color: #f7cac9; font-weight: 700; }
+    .preview-event-item.mine .ev-desc { color: #cbb0c4; }
 
     /* 1층 출입구 */
     .preview-entrance {
@@ -815,7 +823,10 @@
       padding: 3px 10px;
       border-radius: 999px;
     }
+    .seq-badge.hood { background: linear-gradient(135deg, #f7cac9, #f6a6c1); }
     .seq-count { font-size: 12px; color: var(--text-dim); font-weight: 700; }
+    .seq-hood-list { text-align: center; }
+    .seq-hood-list b { color: #f7cac9; }
 
     .seq-headline {
       font-size: 18px;
@@ -1525,6 +1536,26 @@
       return { placed: true, unit: cf + String(cu).padStart(2, "0"), neighbors };
     }
 
+    // 내 이웃 조합에 맞는 따뜻한 한 줄 (③ 이웃 궁합)
+    const HIPHOP = ["에스쿱스", "원우", "민규", "버논"];
+    function hoodComment(hood) {
+      if (!hood || !hood.placed || !hood.neighbors.length) return "";
+      const ids = hood.neighbors.map(n => n.id);
+      const has = (x) => ids.includes(x);
+      const n = ids.length;
+      // 특별 조합
+      if (has("도겸") && has("승관")) return "부석순 보컬 사이에 낀 당신, 성대 배틀 관중석 당첨 🎤";
+      if (has("호시") && (has("도겸") || has("승관"))) return "부석순 텐션 한복판! 매일이 시트콤이겠어요 🎬";
+      if (ids.filter(x => HIPHOP.includes(x)).length >= 2) return "밤마다 옆집서 비트가… 힙합 이웃운 타고났네요 🎧";
+      if (has("우지")) return "윗집인지 옆집인지, 새벽 비트가 자장가가 되는 밤 🎹";
+      if (has("민규")) return "옆집 민규표 집밥 냄새에 배고플 틈이 없겠어요 🍳";
+      // 인원수 기반
+      if (n >= 4) return "복도가 꽉 찼어요 — 사방이 세븐틴, 인싸 캐럿 인증! 💎";
+      if (n === 3) return "이웃 복 터진 캐럿, 심심할 틈이 없겠어요 🫶";
+      if (n === 2) return "양옆(혹은 위아래)에 최애가! 든든한 이웃운 😊";
+      return "첫 이웃 등장! 옆집 문을 두드려볼까요? 🚪";
+    }
+
     // 배치 중 실시간 힌트 — '내 이웃'이 만들어지는 과정을 즉시 보여줌 (A: 나 중심).
     function updateLiveHint() {
       const el = document.getElementById("liveHint");
@@ -1622,18 +1653,24 @@
     }
 
     // ── 순차 이벤트 팝업 (다음 버튼) — 완전체(legendary) 제외 ──
-    let seqEvents = [];
+    let seqCards = [];
     let seqIdx = 0;
-    function openEventSequence(events) {
-      seqEvents = (events || []).filter(e => e && !e.legendary && e.text);
-      if (!seqEvents.length) return;
+    // 이사하기 직후 팝업 시퀀스. hood가 있으면 '이웃 공개' 리빌을 첫 카드로(북극성 A의 절정).
+    function openEventSequence(events, hood) {
+      const evCards = (events || []).filter(e => e && !e.legendary && e.text).map(e => ({ kind: "event", ...e }));
+      seqCards = [];
+      if (hood && hood.placed && hood.neighbors && hood.neighbors.length) {
+        seqCards.push({ kind: "hood", hood });
+      }
+      seqCards.push(...evCards);
+      if (!seqCards.length) return;
       seqIdx = 0;
       const el = document.getElementById("eventSeq");
       el.onclick = (e) => { if (e.target === el) closeEventSequence(); };
       renderSeqCard();
       el.classList.add("show");
     }
-    // 이벤트 관련 멤버 이미지 (2인 이상이면 모핑/충돌 연출)
+    // 관련 멤버 이미지 (2인 이상이면 모핑/충돌 연출)
     function seqAvatarsHTML(members) {
       const imgs = (members || [])
         .map(id => residents.find(r => r.id === id))
@@ -1646,17 +1683,30 @@
     }
     function renderSeqCard() {
       const el = document.getElementById("eventSeq");
-      const e = seqEvents[seqIdx];
-      const last = seqIdx === seqEvents.length - 1;
-      el.innerHTML =
-        '<div class="seq-card">'
-        + '<div class="seq-top"><span class="seq-badge">📰 아파트 특보</span>'
-        + `<span class="seq-count">${seqIdx + 1} / ${seqEvents.length}</span></div>`
-        + seqAvatarsHTML(e.members)
-        + `<div class="seq-headline">${e.text}</div>`
-        + (e.desc ? `<div class="seq-desc">${e.desc}</div>` : "")
-        + `<button type="button" class="seq-next">${last ? "닫기" : "다음 →"}</button>`
-        + '</div>';
+      const c = seqCards[seqIdx];
+      const last = seqIdx === seqCards.length - 1;
+      let body;
+      if (c.kind === "hood") {
+        const ns = c.hood.neighbors;
+        const list = ns.map(n => `<b>${n.relation}</b> ${n.emoji ? n.emoji + " " : ""}${n.label}`).join("<br>");
+        body =
+          '<div class="seq-top"><span class="seq-badge hood">🏠 이웃 공개</span>'
+          + `<span class="seq-count">${seqIdx + 1} / ${seqCards.length}</span></div>`
+          + seqAvatarsHTML(ns.map(n => n.id))
+          + `<div class="seq-headline">두구두구… 당신의 이웃이 공개됩니다!</div>`
+          + `<div class="seq-desc seq-hood-list">${list}</div>`
+          + `<button type="button" class="seq-next">${last ? "닫기" : "우리 동네 이야기 보기 →"}</button>`;
+      } else {
+        const e = c;
+        body =
+          '<div class="seq-top"><span class="seq-badge">📰 아파트 특보</span>'
+          + `<span class="seq-count">${seqIdx + 1} / ${seqCards.length}</span></div>`
+          + seqAvatarsHTML(e.members)
+          + `<div class="seq-headline">${e.text}</div>`
+          + (e.desc ? `<div class="seq-desc">${e.desc}</div>` : "")
+          + `<button type="button" class="seq-next">${last ? "닫기" : "다음 →"}</button>`;
+      }
+      el.innerHTML = '<div class="seq-card">' + body + '</div>';
       el.querySelector(".seq-next").addEventListener("click", (ev) => {
         ev.stopPropagation();
         if (last) closeEventSequence();
@@ -1787,12 +1837,12 @@
       const evEl = document.getElementById("previewEvents");
       const evs = generateEvents(results);
       lastEvents = evs; // 공유 문구에 랜덤 1개 넣기 위해 보관
+      const hood = myNeighbors(results);
+      lastHood = hood;
 
       // 🏠 나의 이웃 히어로 (북극성 A: 내 옆집·윗집·아랫집이 누구인가)
       const verdictEl = document.getElementById("previewVerdict");
       if (verdictEl) {
-        const hood = myNeighbors(results);
-        lastHood = hood;
         const nick = (nickInput.value || "").trim();
         const who = nick ? `${nick}(캐럿)` : "나(캐럿)";
 
@@ -1818,16 +1868,23 @@
           ).join("");
           verdictEl.innerHTML =
             `<div class="myhood-kicker">🏠 ${who}의 이웃 — ${hood.unit}호</div>`
-            + `<div class="myhood-row">${cards}</div>`;
+            + `<div class="myhood-row">${cards}</div>`
+            + `<div class="myhood-comment">${hoodComment(hood)}</div>`;
         }
       }
 
       if (evEl) {
         if (evs.length) {
+          // ② 내 이웃이 등장하는 사건을 맨 위로 (나 중심 서사)
+          const nIds = new Set((hood && hood.placed ? hood.neighbors.map(n => n.id) : []));
+          const isMine = (e) => (e.members || []).some(m => nIds.has(m));
+          const ordered = nIds.size
+            ? [...evs.filter(isMine), ...evs.filter(e => !isMine(e))]
+            : evs;
           evEl.style.display = "block";
-          evEl.innerHTML = '<div class="preview-events-title">🎬 우리 아파트 이야기</div>'
-            + evs.map(e => `<div class="preview-event-item${e.legendary ? " legend" : ""}">`
-                + `<div class="ev-line">· ${e.text}</div>`
+          evEl.innerHTML = '<div class="preview-events-title">🎬 우리 동네 이야기</div>'
+            + ordered.map(e => `<div class="preview-event-item${e.legendary ? " legend" : ""}${isMine(e) ? " mine" : ""}">`
+                + `<div class="ev-line">${isMine(e) ? "🏠 " : "· "}${e.text}</div>`
                 + (e.desc ? `<div class="ev-desc">${e.desc}</div>` : "")
                 + `</div>`).join("");
         } else {
@@ -2073,8 +2130,8 @@
       renderPreview(results);
       // 미리보기 위치로 부드럽게 스크롤
       document.getElementById("previewContainer").scrollIntoView({ behavior: "smooth", block: "start" });
-      // 순차 이벤트 팝업 (각 팝업이 관련 멤버 이미지를 모핑). 모션 의존 제거 → 항상 즉시 노출
-      openEventSequence(lastEvents);
+      // 순차 팝업: '이웃 공개'(있으면) → 이벤트들. 각 팝업이 관련 멤버 이미지를 모핑.
+      openEventSequence(lastEvents, lastHood);
 
       // 시트 전송
       const payload = {
